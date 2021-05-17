@@ -1,0 +1,37 @@
+Exp-List:	Exp-List Exp | Exp
+
+Exp:		Def-Exp | Op-Exp | As-Exp | If-Stmt | Lop-Stmt | Fun-Def
+
+
+Def-Exp:	TYPE Var-List";"
+
+TYPE:		"int" | "float"
+
+Var-List:	Var-List, Var | Var
+
+Var:		Var"["number"]" | ID
+
+number:		0|([1-9][0-9]*)
+
+
+As-Exp:		Var = Op-Exp
+
+
+Op-Exp:		Op-Exp Add-op Term";" | Term";"
+
+Term:		Term Mul-op Factor | Factor
+
+Factor:		"("Op-Exp")" | Var | Fun-Value
+
+Add-op:		"+" | "-" 
+
+Mul-op:		"*" | "/"
+
+
+If-Stmt:	"IF" "("Op-Exp")" "DO" Exp-List "DONE"
+
+Lop-Stmt:	"LOOP" "("Op-Exp")" "DO" Exp-List "DONE"
+
+Fun-Def:	"FUNCTION" TYPE "("Var-List")" "DO" Exp-List "DONE"
+
+
