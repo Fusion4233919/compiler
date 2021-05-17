@@ -1,18 +1,17 @@
 Exp-List:	Exp-List Exp | Exp
 
-Exp:		Def-Exp | Op-Exp | As-Exp | Cmp-Exp
+Exp:		Def-Exp";" | Op-Exp";" | As-Exp";" | Cond-Exp
             | If-Stmt | Lop-Stmt | Fun-Def
-            | "break"";" | "continue"";" | "return" Op-Exp
+            | "break"";" | "continue"";" | "return" Op-Exp";"
 
-Cmp-Exp:    Op-Exp | Op-Exp Cmp-op Op-Exp
 
-Def-Exp:	TYPE Var-List";"
+Def-Exp:	TYPE Var-List
 
 FUNC-Type:  TYPE | "void"
 
 TYPE:		"int" | "float"
 
-Var-List:	Var-List, Var | Var
+Var-List:	Var-List"," Var | Var
 
 Var:		Var"["number"]" | ID
 
@@ -22,17 +21,28 @@ number:		0|([1-9][0-9]*)
 As-Exp:		Var = Op-Exp
 
 
-Op-Exp:		Op-Exp Add-op Term";" | Term";"
 
-Term:		Term Mul-op Factor | Factor
+Cond-Exp:	Cond-Exp "||" Cond-Term | Cond-Term 
 
-Factor:		"("Op-Exp")" | Var | Fun-Value | number
+Cond-Term:	Cond-Term "&&" Cond-Factor | Cond-Factor
+
+Cond-Factor:	Cond-Factor Cond-op Op-Exp | Op-Exp
+
+Cond-op:	"<" | ">" | "==" | "!=" | "<=" | ">="
+
+
+
+Op-Exp:		Op-Exp Add-op Op-Term | Op-Term
+
+Op-Term:	Op-Term Mul-op Op-Factor | Op-Factor
+
+Op-Factor:	"("Op-Exp")" | Var | Fun-Value | number
 
 Add-op:		"+" | "-" 
 
 Mul-op:		"*" | "/"
 
-Cmp-op:     "<" | ">" | "==" | "!=" | "<=" | ">="
+	
 
 If-Stmt:	"IF" "("Cmp-Exp")" "DO" Exp-List "DONE"
 
@@ -40,6 +50,6 @@ Lop-Stmt:	"LOOP" "("Op-Exp")" "DO" Exp-List "DONE"
 
 Fun-Def:	"FUNCTION" FUNC-TYPE Fun-Id "("Var-List")" "DO" Exp-List "DONE"
 
-Fun-Value:  Fun-Id "("Var-List")"
+Fun-Value:  	Fun-Id "("Var-List")"
 
 
