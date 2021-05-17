@@ -1,8 +1,10 @@
 Exp-List:	Exp-List Exp | Exp
 
-Exp:		Def-Exp | Op-Exp | As-Exp | If-Stmt | Lop-Stmt | Fun-Def
+Exp:		Def-Exp | Op-Exp | As-Exp | Cmp-Exp
+            | If-Stmt | Lop-Stmt | Fun-Def
             | "break"";" | "continue"";" | "return" Op-Exp
 
+Cmp-Exp:    Op-Exp | Op-Exp Cmp-op Op-Exp
 
 Def-Exp:	TYPE Var-List";"
 
@@ -30,8 +32,9 @@ Add-op:		"+" | "-"
 
 Mul-op:		"*" | "/"
 
+Cmp-op:     "<" | ">" | "==" | "!=" | "<=" | ">="
 
-If-Stmt:	"IF" "("Op-Exp")" "DO" Exp-List "DONE"
+If-Stmt:	"IF" "("Cmp-Exp")" "DO" Exp-List "DONE"
 
 Lop-Stmt:	"LOOP" "("Op-Exp")" "DO" Exp-List "DONE"
 
