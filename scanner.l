@@ -1,15 +1,15 @@
 %{
     #include <stdio.h>
     #include "parser.y.h"
-}
+%}
 
-%option noyywarp
+%option noyywrap
 %option yylineno
 
 %%
 
-"/*"([^\*]|(\*)*[^\*/])*(\*)*"*/";      /* comment */ 
-[ \t\v\n\f];                            /* blank char */
+"/*"([^\*]|(\*)*[^\*/])*(\*)*"*/" ;     /* comment */ 
+[ \t\v\n\f] ;                           /* blank char */
 
 "||"                    return L_OR;    /* logic op */ 
 "&&"                    return L_AD;
@@ -50,7 +50,7 @@
 
 0|([1-9][0-9]*) {
     yylval.num = atoi(yytext);
-    return Number
+    return Number;
 }
 
 ([A-Z]|[a-z])+ {
@@ -60,7 +60,7 @@
 
 _([A-Z]|[a-z])+ {
     yylval.str = yytext;
-    return Func-ID;
+    return Fun_ID;
 }
 
 . {
