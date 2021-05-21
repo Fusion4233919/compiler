@@ -1,68 +1,68 @@
-Program:	Program Fun-Def | Program Def-Exp";"
+Program:	    Program Fun-Def | Program Def-Exp";"
 
 
-Def-Exp:	TYPE Var-List
+Def-Exp:        TYPE Var-List
 
-TYPE:		"int" | "float"
+TYPE:		    "int" | "float"
 
-FUNC-Type:  	TYPE | "void"
+FUNC-TYPE:      TYPE | "void"
 
-Var-List:	Var-List"," Var | Var
+Var-List:	    Var-List"," Var | Var
 
-Var:		Var"["number"]" | ID
+Var:		    Var"["Number"]" | ID
 
 
-Fun-Def:	"FUNCTION" FUNC-TYPE Fun-ID "("Fun-Var-List")" "DO" Exp-List "DONE"
+Fun-Def:	    "function" FUNC-TYPE Fun-ID "("Fun-Var-List")" "do" Exp-List "done"
 
 Fun-Var-List:	Fun-Var-List"," Fun-Var | Fun-Var
 
-Fun-Var:	TYPE ID 
+Fun-Var:	    TYPE ID 
 
 
-number:		0|([1-9][0-9]*)
+Number:		    0|([1-9][0-9]*)
 
-ID:		([A-Z]|[a-z])+
+ID:		        ([A-Z]|[a-z])+
 
-Fun-ID:		_([A-Z]|[a-z])+
-
-
-
-Exp-List:	Exp-List Exp | Exp
-
-Exp:		Def-Exp";" | Op-Exp";" | As-Exp";" | Cond-Exp
-            | If-Stmt | Lop-Stmt
-            | "break"";" | "continue"";" | "return" Op-Exp";"
+Fun-ID:		    _([A-Z]|[a-z])+
 
 
-As-Exp:		Var = Op-Exp
+
+Exp-List:	    Exp-List Exp | Exp
+
+Exp:	        Def-Exp";" | Op-Exp";" | As-Exp";" | Cond-Exp
+                | If-Stmt | Lop-Stmt
+                | "break"";" | "continue"";" | "return" Op-Exp";"
 
 
-Cond-Exp:	Cond-Exp "||" Cond-Term | Cond-Term 
+As-Exp:		    Var = Op-Exp
 
-Cond-Term:	Cond-Term "&&" Cond-Factor | Cond-Factor
+
+Cond-Exp:	    Cond-Exp "||" Cond-Term | Cond-Term 
+
+Cond-Term:  	Cond-Term "&&" Cond-Factor | Cond-Factor
 
 Cond-Factor:	Cond-Factor Cond-op Op-Exp | Op-Exp
 
-Cond-op:	"<" | ">" | "==" | "!=" | "<=" | ">="
+Cond-op:	    "<" | ">" | "==" | "!=" | "<=" | ">="
 
 
 
-Op-Exp:		Op-Exp Add-op Op-Term | Op-Term
+Op-Exp:		    Op-Exp Add-op Op-Term | Op-Term
 
-Op-Term:	Op-Term Mul-op Op-Factor | Op-Factor
+Op-Term:	    Op-Term Mul-op Op-Factor | Op-Factor
 
-Op-Factor:	"("Op-Exp")" | Var | Fun-Value | number
+Op-Factor:	    "("Op-Exp")" | Var | Fun-Value | number
 
-Add-op:		"+" | "-" 
+Add-op:		    "+" | "-" 
 
-Mul-op:		"*" | "/" | "%"
+Mul-op:		    "*" | "/" | "%"
 
-	
+    
 
-If-Stmt:	"IF" "("Cmp-Exp")" "DO" Exp-List "DONE"
+If-Stmt:	    "if" "("Cmp-Exp")" "do" Exp-List "done"
 
-Lop-Stmt:	"LOOP" "("Op-Exp")" "DO" Exp-List "DONE"
+Lop-Stmt:	    "loop" "("Op-Exp")" "do" Exp-List "done"
 
-Fun-Value:  	Fun-Id "("Var-List")"
+Fun-Value:      Fun-Id "("Var-List")"
 
 
