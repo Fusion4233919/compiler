@@ -44,7 +44,6 @@ Program : Program Block {;}
 
 Block : Fun_Def {;}
       | Def_Exp ';' {;}
-      | As_Exp ';' {;}
       ;
 
 As_Exp : Var '=' Op_Exp {;}

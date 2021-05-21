@@ -1,5 +1,5 @@
 Program:        Program Block | Block 
-Block:	        Fun_Def | Def_Exp";" | As_Exp";"
+Block:	        Fun_Def | Def_Exp";" 
 
 
 Def_Exp:        TYPE Var_List
