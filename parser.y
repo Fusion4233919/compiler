@@ -27,7 +27,7 @@
 %token <token> INT FLOAT VOID
 
 %type <node> Program Block Fun_Def Def_Exp
-%type <node> TYPE FUN_TYPE Var Var_List Fun_Var Fun_Var_List Fun_Value List
+%type <node> TYPE FUN_TYPE Var Var_List Fun_Var Fun_Var_List LValue Fun_Value List
 %type <node> Exp_List Exp As_Exp If_Stmt Lop_Stmt Op_Exp Cond_Exp
 %type <node> Cond_Term Cond_Factor Cond_Op
 %type <node> Op_Term Op_Factor Add_op Mul_op
@@ -46,7 +46,7 @@ Block : Fun_Def {;}
       | Def_Exp ';' {;}
       ;
 
-As_Exp : Var '=' Op_Exp {;}
+As_Exp : LValue '=' Op_Exp {;}
        ;
 
 Def_Exp : TYPE Var_List {;}
@@ -79,12 +79,17 @@ Fun_Var_List : Fun_Var_List ',' Fun_Var {;}
 Fun_Var : TYPE ID {;}
         ;
 
+LValue : LValue '[' LValue ']' {;}
+       | LValue '[' Number ']' {;}
+       | ID {;}
+       ;
+
 Fun_Value : Fun_ID '(' List ')' {;}
           ;
 
-List : List ',' Var {;}
+List : List ',' LValue {;}
      | List ',' Number {;}
-     | Var {;}
+     | LValue {;}
      | Number {;}
      | {;}
      ;
@@ -114,7 +119,7 @@ Op_Term : Op_Term Mul_op Op_Factor {;}
         ;
 
 Op_Factor : '(' Op_Exp ')' {;}
-          | Var {;}
+          | LValue {;}
           | Fun_Value {;}
           | Number {;}
           ;
