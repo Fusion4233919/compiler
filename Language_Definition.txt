@@ -15,9 +15,9 @@ Var:		    Var"["Number"]" | ID
 
 Fun_Def:	    "function" FUN_TYPE Fun_ID "("Fun_Var_List")" "do" Exp_List "done"
 
-Fun_Var_List:	Fun_Var_List"," Fun_Var | Fun_Var
+Fun_Var_List:	Fun_Var_List"," Fun_Var | Fun_Var | "void"
 
-Fun_Var:	    TYPE ID | "void"
+Fun_Var:	    TYPE Var
 
 
 Number:		    0|([1-9][0-9]*)
@@ -32,7 +32,7 @@ Exp_List:	    Exp_List Exp | Exp
 
 Exp:	        Def_Exp";" | Op_Exp";" | As_Exp";" | Cond_Exp";"
                 | If_Stmt | Lop_Stmt
-                | "break"";" | "continue"";" | "return" Op_Exp";"
+                | "break"";" | "continue"";" | "return" Op_Exp";" | "return" ";"
 
 
 As_Exp:		    Var = Op_Exp
@@ -64,6 +64,8 @@ If_Stmt:	    "if" "("Cond_Exp")" "do" Exp_List "done"
 
 Lop_Stmt:	    "loop" "("Cond_Exp")" "do" Exp_List "done"
 
-Fun_Value:      Fun_ID "("Var_List")"
+Fun_Value:      Fun_ID "("List")"
+
+List:           List "," Var | List "," Number | 
 
 
