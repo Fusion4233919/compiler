@@ -9,7 +9,7 @@
 %%
 
 "/*"([^\*]|(\*)*[^\*/])*(\*)*"*/" ;     /* comment */ 
-[ \t\v\n\f] ;                           /* blank char */
+[ \t\v\n\f\r] ;                         /* blank char */
 
 "||"                    return L_OR;    /* logic op */ 
 "&&"                    return L_AD;
