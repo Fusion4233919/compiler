@@ -35,7 +35,7 @@ Exp:	        Def_Exp";" | Op_Exp";" | As_Exp";" | Cond_Exp";"
                 | "break"";" | "continue"";" | "return" Op_Exp";" | "return" ";"
 
 
-As_Exp:		    Var = Op_Exp
+As_Exp:		    LValue = Op_Exp
 
 
 Cond_Exp:	    Cond_Exp "||" Cond_Term | Cond_Term 
@@ -52,7 +52,7 @@ Op_Exp:		    Op_Exp Add_op Op_Term | Op_Term
 
 Op_Term:	    Op_Term Mul_op Op_Factor | Op_Factor
 
-Op_Factor:	    "("Op_Exp")" | Var | Fun_Value | Number
+Op_Factor:	    "("Op_Exp")" | LValue | Fun_Value | Number
 
 Add_op:		    "+" | "-" 
 
@@ -66,6 +66,8 @@ Lop_Stmt:	    "loop" "("Cond_Exp")" "do" Exp_List "done"
 
 Fun_Value:      Fun_ID "("List")"
 
-List:           List "," Var | List "," Number | 
+List:           List "," LValue | List "," Number | 
+
+LValue:         LValue "[" LValue "]" | LValue "["Number"]" | ID 
 
 
