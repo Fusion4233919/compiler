@@ -41,11 +41,12 @@ done
 
 function void _main(void)
 do
-	_input("%d", n) ;
+	_input("%d", &n) ;
 	int i ;
 	i = 1 ;
 	loop (i <= n) do
-		_input("%d", a[i]);
+		_input("%d", &a[i]);
+		i = i + 1 ;
 	done
 
 	_qsort(1, n) ;
@@ -53,6 +54,6 @@ do
 	i = 1 ;
 	loop (i <= n) do
 		_output("%d\n", a[i]);
+		i = i + 1 ;
 	done
-
 done
