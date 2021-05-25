@@ -1,3 +1,10 @@
+/************************************
+/*    Name:        scanner.l 
+/*    Version:     v1.2
+/*    Modefied by: fusion
+/*                 2021-5-25 15:16
+/************************************/
+
 %{
     #include <stdio.h>
     #include "parser.y.h"
@@ -45,8 +52,14 @@
 "return"                return RETURN;
 
 "int"                   return INT;     /* type */
-"float"                 return FLOAT;
+"string"                return STRING;
+// "float"                 return FLOAT;
 "void"                  return VOID;
+
+\"(\\.|[^"\\])*\" {
+    yylval.str = yytext;
+    return String;
+}
 
 0|([1-9][0-9]*) {
     yylval.num = atoi(yytext);
