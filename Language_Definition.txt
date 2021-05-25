@@ -4,7 +4,7 @@ Block:	        Fun_Def | Def_Exp";"
 
 Def_Exp:        TYPE Var_List
 
-TYPE:		    "int" | "float"
+TYPE:		    "int" | "string"
 
 FUN_TYPE:       TYPE | "void"
 
@@ -22,6 +22,8 @@ Fun_Var:	    TYPE Var
 
 Number:		    0|([1-9][0-9]*)
 
+String:         \"(\\.|[^"\\])*\"
+
 ID:		        ([A-Z]|[a-z])+
 
 Fun_ID:		    _([A-Z]|[a-z])+
@@ -35,7 +37,7 @@ Exp:	        Def_Exp";" | Op_Exp";" | As_Exp";" | Cond_Exp";"
                 | "break"";" | "continue"";" | "return" Op_Exp";" | "return" ";"
 
 
-As_Exp:		    LValue = Op_Exp
+As_Exp:		    LValue = Op_Exp | LValue = String
 
 
 Cond_Exp:	    Cond_Exp "||" Cond_Term | Cond_Term 
@@ -66,7 +68,7 @@ Lop_Stmt:	    "loop" "("Cond_Exp")" "do" Exp_List "done"
 
 Fun_Value:      Fun_ID "("List")"
 
-List:           List "," LValue | List "," Number | 
+List:           List "," LValue | List "," Number | List "," String |
 
 LValue:         LValue "[" LValue "]" | LValue "["Number"]" | ID 
 
