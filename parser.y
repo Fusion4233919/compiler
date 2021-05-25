@@ -1,3 +1,10 @@
+/************************************
+    Name:        parser.y 
+    Version:     v1.3
+    Modefied by: fusion
+                 2021-5-25 15:12
+************************************/
+
 %{
     #include <stdio.h>
     #include <stdlib.h>
@@ -26,7 +33,7 @@
 %token <token> '(' ')' '[' ']' ',' ';'
 %token <token> '+' '-' '*' '/' '%'
 %token <token> IF LOOP DO DONE FUNCTION BREAK CONTINUE RETURN
-%token <token> INT VOID // FLOAT
+%token <token> INT VOID STRING // FLOAT
 
 %type <node> Program Block Fun_Def Def_Exp
 %type <node> TYPE FUN_TYPE Var Var_List Fun_Var Fun_Var_List LValue Fun_Value List
@@ -59,6 +66,7 @@ Fun_Def : FUNCTION FUN_TYPE Fun_ID '(' Fun_Var_List ')' DO Exp_List DONE {;}
         ;
 
 TYPE : INT {;}
+     | STRING {;}
 //     | FLOAT {;}
      ;
 
