@@ -53,7 +53,6 @@
 
 "int"                   return INT;     /* type */
 "string"                return STRING;
-// "float"                 return FLOAT;
 "void"                  return VOID;
 
 \"(\\.|[^"\\])*\" {
