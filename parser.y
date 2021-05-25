@@ -12,19 +12,21 @@
 %union {
     char *str;
     int num;
+//    float fnum;
     int token;
     struct AST *node;
 }
 
 
 %token <num> Number
-%token <str> ID Fun_ID
+//%token <fnum> Fnumber
+%token <str> ID Fun_ID String
 %token <token> L_OR L_AD L_EQ L_LE L_GE L_NE '<' '>'
 %token <token> '='
 %token <token> '(' ')' '[' ']' ',' ';'
 %token <token> '+' '-' '*' '/' '%'
 %token <token> IF LOOP DO DONE FUNCTION BREAK CONTINUE RETURN
-%token <token> INT FLOAT VOID
+%token <token> INT VOID // FLOAT
 
 %type <node> Program Block Fun_Def Def_Exp
 %type <node> TYPE FUN_TYPE Var Var_List Fun_Var Fun_Var_List LValue Fun_Value List
@@ -47,6 +49,7 @@ Block : Fun_Def {;}
       ;
 
 As_Exp : LValue '=' Op_Exp {;}
+       | LValue '=' String {;}
        ;
 
 Def_Exp : TYPE Var_List {;}
@@ -56,7 +59,7 @@ Fun_Def : FUNCTION FUN_TYPE Fun_ID '(' Fun_Var_List ')' DO Exp_List DONE {;}
         ;
 
 TYPE : INT {;}
-     | FLOAT {;}
+//     | FLOAT {;}
      ;
 
 FUN_TYPE : TYPE {;}
@@ -89,8 +92,12 @@ Fun_Value : Fun_ID '(' List ')' {;}
 
 List : List ',' LValue {;}
      | List ',' Number {;}
+//     | List ',' Fnumber {;}
+     | List ',' String {;}
      | LValue {;}
      | Number {;}
+//     | Fnumber {;}
+     | String {;}
      | {;}
      ;
 
@@ -122,6 +129,7 @@ Op_Factor : '(' Op_Exp ')' {;}
           | LValue {;}
           | Fun_Value {;}
           | Number {;}
+//          | Fnumber {;}
           ;
 
 Add_op : '+' {;}
