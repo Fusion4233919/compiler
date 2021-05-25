@@ -59,7 +59,7 @@ do
 	loop (i <= n1) do
 		j = 1 ;
 		loop (j <= m2) do
-			_output("%6d", C[i][j]) ;
+			_output("%10d", C[i][j]) ;
 			j = j + 1 ;
 		done
 		i = i + 1 ;
