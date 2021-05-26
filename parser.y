@@ -1,8 +1,8 @@
 /************************************
     Name:        parser.y 
-    Version:     v1.3
+    Version:     v1.4
     Modefied by: fusion
-                 2021-5-25 15:12
+                 2021-5-25 10:47
 ************************************/
 
 %{
@@ -19,9 +19,8 @@
 %union {
     char *str;
     int num;
-//    float fnum;
     int token;
-    struct AST *node;
+    AST *node;
 }
 
 
@@ -29,13 +28,13 @@
 //%token <fnum> Fnumber
 %token <str> ID Fun_ID String
 %token <token> L_OR L_AD L_EQ L_LE L_GE L_NE '<' '>'
-%token <token> '='
+%token <token> '=' '&'
 %token <token> '(' ')' '[' ']' ',' ';'
 %token <token> '+' '-' '*' '/' '%'
-%token <token> IF LOOP DO DONE FUNCTION BREAK CONTINUE RETURN
-%token <token> INT VOID STRING // FLOAT
+%token <token> IF LOOP DO DONE FUNCTION DECLARE BREAK CONTINUE RETURN
+%token <token> INT VOID STRING 
 
-%type <node> Program Block Fun_Def Def_Exp
+%type <node> Program Def_List Fun_Def_List Fun_Def Def
 %type <node> TYPE FUN_TYPE Var Var_List Fun_Var Fun_Var_List LValue Fun_Value List
 %type <node> Exp_List Exp As_Exp If_Stmt Lop_Stmt Op_Exp Cond_Exp
 %type <node> Cond_Term Cond_Factor Cond_Op
@@ -47,27 +46,25 @@
 %start Program
 
 %%
-Program : Program Block {;}
-        | Block {;}
+Program : Def_List Fun_Def_List {;}
         ;
 
-Block : Fun_Def {;}
-      | Def_Exp ';' {;}
-      ;
+Def_List : Def_List Def ';' {;}
+         | {;}
+         ;
 
-As_Exp : LValue '=' Op_Exp {;}
-       | LValue '=' String {;}
-       ;
+Fun_Def_List : Fun_Def_List Fun_Def {;}
+             | {;}
+             ;
 
-Def_Exp : TYPE Var_List {;}
-        ;
+Def : TYPE Var_List {;}
+    ;
 
-Fun_Def : FUNCTION FUN_TYPE Fun_ID '(' Fun_Var_List ')' DO Exp_List DONE {;}
+Fun_Def : FUNCTION FUN_TYPE Fun_ID '(' Fun_Var_List ')' DECLARE Def_List DO Exp_List DONE {;}
         ;
 
 TYPE : INT {;}
      | STRING {;}
-//     | FLOAT {;}
      ;
 
 FUN_TYPE : TYPE {;}
@@ -100,11 +97,9 @@ Fun_Value : Fun_ID '(' List ')' {;}
 
 List : List ',' LValue {;}
      | List ',' Number {;}
-//     | List ',' Fnumber {;}
      | List ',' String {;}
      | LValue {;}
      | Number {;}
-//     | Fnumber {;}
      | String {;}
      | {;}
      ;
@@ -113,8 +108,7 @@ Exp_List : Exp_List Exp {;}
          | Exp {;}
          ;
 
-Exp : Def_Exp ';' {;} 
-    | As_Exp ';' {;}
+Exp : As_Exp ';' {;}
     | Op_Exp ';' {;}
     | Cond_Exp ';' {;}
     | If_Stmt {;}
@@ -124,6 +118,11 @@ Exp : Def_Exp ';' {;}
     | RETURN Op_Exp ';' {;}
     | RETURN ';' {;}
     ;
+
+
+As_Exp : LValue '=' Op_Exp {;}
+       | LValue '=' String {;}
+       ;
 
 Op_Exp : Op_Exp Add_op Op_Term {;}
        | Op_Term {;}
@@ -137,7 +136,6 @@ Op_Factor : '(' Op_Exp ')' {;}
           | LValue {;}
           | Fun_Value {;}
           | Number {;}
-//          | Fnumber {;}
           ;
 
 Add_op : '+' {;}
@@ -183,9 +181,4 @@ void yyerror(const char*s)
     printf("line %d:", yylineno);
     printf("text \"%s\" \n", yytext);
     exit(1);
-}
-
-int main(void)
-{
-    return yyparse();
 }
