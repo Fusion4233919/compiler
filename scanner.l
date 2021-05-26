@@ -1,12 +1,13 @@
 /************************************
 /*    Name:        scanner.l 
-/*    Version:     v1.2
+/*    Version:     v1.3
 /*    Modefied by: fusion
-/*                 2021-5-25 15:16
+/*                 2021-5-26 10:40
 /************************************/
 
 %{
     #include <stdio.h>
+    #include "AST.h"
     #include "parser.y.h"
 %}
 
@@ -27,6 +28,7 @@
 "<"                     return '<';
 ">"                     return '>';
 
+"&"                     return '&';
 "="                     return '=';     /* assign op */
 
 "("                     return '(';
@@ -47,6 +49,7 @@
 "do"                    return DO;
 "done"                  return DONE;
 "function"              return FUNCTION;
+"declare"               return DECLARE;
 "break"                 return BREAK;
 "continue"              return CONTINUE;
 "return"                return RETURN;
