@@ -1,8 +1,13 @@
-Program:        Program Block | Block 
-Block:	        Fun_Def | Def_Exp";" 
+Program:        Def_List Fun_Def_List
 
+Def_List:       Def_List Def ";" |  
 
-Def_Exp:        TYPE Var_List
+Fun_Def_List:   Fun_Def_List Fun_Def | 
+
+Def:            TYPE Var_List
+
+Fun_Def:	    "function" FUN_TYPE Fun_ID "("Fun_Var_List")" "declare" Def_List "do" Exp_List "done"
+
 
 TYPE:		    "int" | "string"
 
@@ -11,9 +16,6 @@ FUN_TYPE:       TYPE | "void"
 Var_List:	    Var_List"," Var | Var
 
 Var:		    Var"["Number"]" | ID
-
-
-Fun_Def:	    "function" FUN_TYPE Fun_ID "("Fun_Var_List")" "do" Exp_List "done"
 
 Fun_Var_List:	Fun_Var_List"," Fun_Var | Fun_Var | "void"
 
@@ -30,9 +32,9 @@ Fun_ID:		    _([A-Z]|[a-z])+
 
 
 
-Exp_List:	    Exp_List Exp | Exp
+Exp_List:	    Exp_List Exp | 
 
-Exp:	        Def_Exp";" | Op_Exp";" | As_Exp";" | Cond_Exp";"
+Exp:	        Op_Exp ";" | As_Exp ";" | Cond_Exp ";"
                 | If_Stmt | Lop_Stmt
                 | "break"";" | "continue"";" | "return" Op_Exp";" | "return" ";"
 

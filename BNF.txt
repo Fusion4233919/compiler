@@ -1,8 +1,7 @@
-Program         = {Block}
-Block           = Fun_Def | Def_Exp, ";" 
-Fun_Def         = "function", FUN_TYPE, Fun_ID, "(", Fun_Var_List, ")", "do", {Exp}, "done"
+Program         = {Def}, {Fun_Def}
+Fun_Def         = "function", FUN_TYPE, Fun_ID, "(", Fun_Var_List, ")", "declare", {Def} "do", {Exp}, "done"
 Fun_Var_List    = "void" | TYPE, Var, [{",", TYPE, Var}]
-Def_Exp         = TYPE, Var, [{",", Var}]
+Def             = TYPE, Var, [{",", Var}]
 TYPE            = "int" | "string"
 Var             = ID, {"[", Number, "]"}
 Letter          = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
@@ -14,7 +13,7 @@ Number          = "0" | digit, {digit_with_zero}
 String          = double_quote, {Letter}, double_quote
 LValue          = ID, {"[", (ID | Number), "]"}
 Fun_Value       = Fun_ID, "(", [(LValue | Number | String), [{",", (LValue | Number | String)}]], ")"
-Exp             = Def_Exp, ";" | As_Exp, ";" | Op_Exp, ";" | Cond_Exp, ";" | If_Stmt | Lop_Stmt | "break", ";" | "continue", ";" | "return", [Op_Exp], ";"
+Exp             = As_Exp, ";" | Op_Exp, ";" | Cond_Exp, ";" | If_Stmt | Lop_Stmt | "break", ";" | "continue", ";" | "return", [Op_Exp], ";"
 As_Exp          = LValue, "=", (Op_Exp | String)
 Cond_Exp        = Cond_Term, [{"||", Cond_Term}]
 Cond_Term       = Cond_Factor, [{"&&", Cond_Factor}]
