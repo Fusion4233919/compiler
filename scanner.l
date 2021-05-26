@@ -1,8 +1,8 @@
 /************************************
 /*    Name:        scanner.l 
-/*    Version:     v1.3
+/*    Version:     v1.4
 /*    Modefied by: fusion
-/*                 2021-5-26 10:40
+/*                 2021-5-26 15:36
 /************************************/
 
 %{
@@ -59,7 +59,8 @@
 "void"                  return VOID;
 
 \"(\\.|[^"\\])*\" {
-    yylval.str = yytext;
+    yylval.str = new char[strlen(yytext)];
+    strcpy(yylval.str, yytext);
     return String;
 }
 
