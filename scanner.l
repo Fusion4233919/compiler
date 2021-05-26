@@ -2,7 +2,7 @@
 /*    Name:        scanner.l 
 /*    Version:     v1.4
 /*    Modefied by: fusion
-/*                 2021-5-26 15:36
+/*                 2021-5-26 15:50
 /************************************/
 
 %{
@@ -70,12 +70,14 @@
 }
 
 ([A-Z]|[a-z])+ {
-    yylval.str = yytext;
+    yylval.str = new char[strlen(yytext)];
+    strcpy(yylval.str, yytext);
     return ID;
 }
 
 _([A-Z]|[a-z])+ {
-    yylval.str = yytext;
+    yylval.str = new char[strlen(yytext)];
+    strcpy(yylval.str, yytext);
     return Fun_ID;
 }
 
