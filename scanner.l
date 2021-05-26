@@ -1,8 +1,8 @@
 /************************************
 /*    Name:        scanner.l 
-/*    Version:     v1.4
+/*    Version:     v1.5
 /*    Modefied by: fusion
-/*                 2021-5-26 15:50
+/*                 2021-5-26 16:59
 /************************************/
 
 %{
@@ -57,6 +57,9 @@
 "int"                   return INT;     /* type */
 "string"                return STRING;
 "void"                  return VOID;
+
+"_input"                return INPUT;
+"_output"               return OUTPUT;  /* IO */
 
 \"(\\.|[^"\\])*\" {
     yylval.str = new char[strlen(yytext)];
