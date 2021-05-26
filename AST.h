@@ -1,8 +1,8 @@
 /************************************
     Name:        AST.h 
-    Version:     v1.1
+    Version:     v1.2
     Modefied by: fusion
-                 2021-5-26 17:08
+                 2021-5-26 22:58
 ************************************/
 
 #ifndef AST_H
@@ -51,7 +51,7 @@ typedef enum DataType
 typedef union Value
 {
     int integer;
-    char* str;
+    char *str;
 } Value;
 
 class AST
@@ -60,18 +60,19 @@ public:
     static int ID;
     int id;
     Type ntype;
-    char name[32];  /* only for var */
+    char name[32]; /* only for var */
     DataType dtype;
-    Value dvalue;   /* only for const */
-    Operator op;    /* only for operator */ 
+    Value dvalue; /* only for const */
+    Operator op;  /* only for operator */
     int child_num;
-    std::vector<AST*> *children;
+    std::vector<AST *> *children;
 
-    AST(Type type, const char* name);
+    AST(Type type, const char *name);
     AST(int value);
     AST(char *value);
     ~AST();
-    void Insert(AST*);
+    void Insert(AST *);
+    void print(void);
 };
 
 extern AST *head;
