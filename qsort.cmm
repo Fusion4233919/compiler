@@ -2,15 +2,16 @@ int n ;
 int a[1010] ;
 
 function void _qsort(int l, int r)
+declare
+	int pivot ;
+	int ll, rr ;
+	int tmp ;
 do
 	if ( l >= r ) do
 		return ;
 	done
 
-	int pivot;
 	pivot = a[l] ;
-
-	int ll, rr ;
 	ll = l ;
 	rr = r ;
 
@@ -24,7 +25,6 @@ do
 
 		if (ll <= rr) do
 			if (a[ll] >= a[rr]) do
-				int tmp ;
 				tmp = a[ll] ;
 				a[ll] = a[rr] ;
 				a[rr] = tmp ;
@@ -40,9 +40,10 @@ do
 done
 
 function void _main(void)
+declare
+	int i ;
 do
 	_input("%d", &n) ;
-	int i ;
 	i = 1 ;
 	loop (i <= n) do
 		_input("%d", &a[i]);

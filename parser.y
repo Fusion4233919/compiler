@@ -2,7 +2,7 @@
     Name:        parser.y 
     Version:     v1.5
     Modefied by: fusion
-                 2021-5-26 17:07
+                 2021-5-26 17:32
 ************************************/
 
 %{
@@ -37,7 +37,7 @@
 %token <token> INPUT OUTPUT
 
 %type <node> Program Def_List Fun_Def_List Fun_Def Def
-%type <node> TYPE FUN_TYPE Var Var_List Fun_Var Fun_Var_List LValue Fun_Value List
+%type <node> TYPE FUN_TYPE Var Var_List Fun_Var Fun_Var_List LValue Fun_Value List LList
 %type <node> Exp_List Exp As_Exp If_Stmt Lop_Stmt Op_Exp Cond_Exp Input_Exp Output_Exp
 %type <node> Cond_Term Cond_Factor Cond_Op
 %type <node> Op_Term Op_Factor Add_op Mul_op
@@ -106,6 +106,10 @@ List : List ',' LValue {$$=$1; $$->Insert($3);}
      | String {$$=new AST(Type::list, "List"); $$->Insert(new AST($1));}
      ;
 
+LList : LList ',' '&' LValue {$$=$1; $$->Insert($4);}
+      | '&' LValue {$$=new AST(Type::list, "List"); $$->Insert($2);}
+     ;
+
 Exp_List : Exp_List Exp {$$=$1; $$->Insert($2);}
          | Exp {$$=new AST(Type::list, "Exp_List"); $$->Insert($1);}
          ;
@@ -123,10 +127,11 @@ Exp : As_Exp ';' {$$=$1;}
     | Output_Exp ';' {$$=$1;}
     ;
 
-Input_Exp : INPUT '(' String ',' List ')' {$$=new AST(Type::exp, "scanf"); $$->Insert(new AST($3)); $$->Insert($5);}
+Input_Exp : INPUT '(' String ',' LList ')' {$$=new AST(Type::exp, "scanf"); $$->Insert(new AST($3)); $$->Insert($5);}
           ;
 
 Output_Exp : OUTPUT '(' String ',' List ')' {$$=new AST(Type::exp, "printf"); $$->Insert(new AST($3)); $$->Insert($5);}
+           | OUTPUT '(' String ')' {$$=new AST(Type::exp, "printf"); $$->Insert(new AST($3));}
            ;
 
 As_Exp : LValue '=' Op_Exp {$$=new AST(Type::exp, "As_Exp"); $$->Insert($1); $$->Insert($3);}
