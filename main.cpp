@@ -1,8 +1,8 @@
 /************************************
     Name:        main.cpp 
-    Version:     v1.0
+    Version:     v1.1
     Modefied by: fusion
-                 2021-5-26 17:08
+                 2021-5-28 10:59
 ************************************/
 
 #include <stdio.h>
@@ -11,7 +11,10 @@
 
 extern int yyparse();
 extern FILE *yyin;
-FILE *file_in;
+static FILE *file_in;
+
+Vmap glovars;
+Fmap funs;
 
 int main(int argc, const char *argv[])
 {

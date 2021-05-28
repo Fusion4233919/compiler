@@ -1,13 +1,14 @@
 /************************************
     Name:        AST.h 
-    Version:     v1.2
+    Version:     v1.3
     Modefied by: fusion
-                 2021-5-26 22:58
+                 2021-5-28 10:58
 ************************************/
 
 #ifndef AST_H
 #define AST_H
 #include <vector>
+#include <map>
 
 typedef enum Type
 {
@@ -75,6 +76,40 @@ public:
     void print(void);
 };
 
+class Var_attr
+{
+public:
+    char *name;
+    int ref;
+    DataType dtype;
+    Value dvalue;
+
+    Var_attr(char *name, DataType dtype)
+    {
+        this->name = name;
+        this->dtype = dtype;
+    }
+    ~Var_attr();
+};
+
+class Fun_attr
+{
+public:
+    char *name;
+    DataType rtype;
+    Vmap *locvars;
+
+    Fun_attr(char *name, DataType rtype)
+    {
+        this->name = name;
+        this->rtype = rtype;
+        this->locvars = new Vmap;
+    }
+    ~Fun_attr() { delete this->locvars; }
+};
+
+typedef std::map<char *, Var_attr *> Vmap;
+typedef std::map<char *, Fun_attr *> Fmap;
 extern AST *head;
 
 #endif
