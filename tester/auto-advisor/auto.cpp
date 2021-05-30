@@ -66,18 +66,23 @@ int main() {
 			switch(tmp) {
 				case 'A' : 
 					score[cnt] = 4 ;
+					scanf("%c", &tmp) ;
 					break ;
 				case'B' :
 					score[cnt] = 3 ;
+					scanf("%c", &tmp) ;
 					break ;
 				case'C' :
 					score[cnt] = 2 ;
+					scanf("%c", &tmp) ;
 					break ;
 				case'D' :
 					score[cnt] = 1 ;
+					scanf("%c", &tmp) ;
 					break ;
 				case'F' :
 					score[cnt] = 0 ;
+					scanf("%c", &tmp) ;
 					break ;
 				default:
 					tried[cnt] = 0 ;
@@ -123,7 +128,7 @@ int main() {
 		printf("GPA: %.1f\n", 1.0 * sum_score / sum_credit_tried) ;
 	printf("Hours Attempted: %d\n", sum_credit_tried) ;
 	printf("Hours Completed: %d\n", sum_credit_get) ;
-	printf("Credits Remaining: %d\n", gratuate_credit - sum_credit_get) ;
+	printf("Credits Remaining: %d\n\n", gratuate_credit - sum_credit_get) ;
 
 	printf("Possible Courses to Take Next\n") ;
 	if (gratuate_credit == sum_credit_get ) {
