@@ -30,7 +30,7 @@ int main() {
 		// cout << name[cnt] << endl ;
 
 		scanf("%d", &credit[cnt]) ;
-		printf("credit = %d\n", credit[cnt]) ;
+		// printf("credit = %d\n", credit[cnt]) ;
 
 		scanf("%c", &tmp) ;
 		scanf("%c", &tmp) ;
@@ -99,11 +99,13 @@ int main() {
 
 	}
 
+	cnt = cnt - 1 ;
+
+		/*
 	for (int i = 1; i <= cnt; ++i ) {
 		cout << name[i] << endl ;
 		cout << credit[i] << endl ;
 
-		/*
 		cout << "pre:\n" ;
 		for ( int j = 0; j < pre[i].size(); ++j ) {
 			printf("\n\tset:\n") ;
@@ -112,8 +114,8 @@ int main() {
 			}
 		}
 		cout << "end\n" ;
-		*/
 	}
+		*/
 
 	if ( sum_credit_tried == 0 )
 		printf("GPA: 0.0\n") ;
@@ -127,6 +129,41 @@ int main() {
 	if (gratuate_credit == sum_credit_get ) {
 		printf("  None - Congratulations!\n") ;
 		return 0 ;
+	} else {
+		for ( int i = 1; i <= cnt; ++i ) {
+			if (!tried[i]) {
+				//cout << "checking.. " << name[i] << endl ;
+				int tag = 0 ;
+				if (pre[i].size() == 0)
+					tag = 1 ;
+				for ( int j = 0; j < pre[i].size(); ++j ) {
+					tag = 1 ;
+					for ( int k = 0; k < pre[i][j].size(); ++k ) {
+						string cur = pre[i][j][k] ;
+						//cout << '\t' << cur << endl ;
+						int found = 0 ;
+						for ( int l = 1; l <= cnt; ++l ) {
+							if (name[l] == cur) {
+								//cout << "\t\t" << name[l] << endl ;
+								found = 1 ;
+								if (score[l] == 0)
+									tag = 0 ;
+								break ;
+							}
+						}
+						if (found == 0)
+							tag = 0 ;
+					}
+					if ( tag == 1 )
+						break ;
+				}
+				if ( tag == 1 ) {
+					printf("  ") ;
+					cout << name[i] << endl ;
+				}
+				//getchar() ;
+			}
+		}
 	}
 
 
