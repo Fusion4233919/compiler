@@ -1,0 +1,60 @@
+int n ;
+int data[1010] ;
+
+function void _qsort(int l, int r)
+declare
+	int pivot ;
+	int ll, rr ;
+	int tmp ;
+do
+	if ( l >= r ) do
+		return ;
+	done
+
+	pivot = data[l] ;
+	ll = l ;
+	rr = r ;
+
+	loop (ll < rr) do
+		loop (data[ll] < pivot) do
+			ll = ll + 1 ;
+		done
+		loop (data[rr] > pivot) do
+			rr = rr - 1 ;
+		done
+
+		if (ll <= rr) do
+			if (data[ll] >= data[rr]) do
+				tmp = data[ll] ;
+				data[ll] = data[rr] ;
+				data[rr] = tmp ;
+			done
+			ll = ll + 1 ;
+			rr = rr - 1 ;
+		done
+
+	done
+
+	_qsort(l, rr) ;
+	_qsort(ll, r) ;
+done
+
+function void _main(void)
+declare
+	int i ;
+do
+	_input("%d", &n) ;
+	i = 1 ;
+	loop (i <= n) do
+		_input("%d", &data[i]);
+		i = i + 1 ;
+	done
+
+	_qsort(1, n) ;
+		
+	i = 1 ;
+	loop (i <= n) do
+		_output("%d\n", data[i]);
+		i = i + 1 ;
+	done
+done
