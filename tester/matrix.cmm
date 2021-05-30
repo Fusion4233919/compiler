@@ -28,7 +28,7 @@ do
 	done
 
 	if (m1 != n2) do
-		_output("Incompatible Dimensions") ;
+		_output("Incompatible Dimensions\n") ;
 		return ;
 	done
 
