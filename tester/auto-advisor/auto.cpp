@@ -8,6 +8,11 @@ int score[MAXN] ;
 int tried[MAXN] ;
 vector<vector<string>> pre[MAXN] ;
 
+int sum_score = 0;
+int sum_credit_tried = 0;
+int sum_credit_get = 0;
+int gratuate_credit = 0 ;
+
 int main() {
 	char tmp ;
 	int cnt = 1 ;
@@ -25,6 +30,7 @@ int main() {
 		// cout << name[cnt] << endl ;
 
 		scanf("%d", &credit[cnt]) ;
+		printf("credit = %d\n", credit[cnt]) ;
 
 		scanf("%c", &tmp) ;
 		scanf("%c", &tmp) ;
@@ -75,16 +81,30 @@ int main() {
 					break ;
 				default:
 					tried[cnt] = 0 ;
-					++cnt ;
+					score[cnt] = 0 ;
 			}
 //		}
+
+		gratuate_credit += credit[cnt] ;
+		if (tried[cnt]) {
+			sum_credit_tried += credit[cnt] ;
+			sum_score += score[cnt] * credit[cnt];
+			if (score[cnt] > 0) {
+				sum_credit_get += credit[cnt] ;
+			}
+		}
+		
 		scanf("%c", &tmp) ;
+		++cnt ;
 
 	}
 
 	for (int i = 1; i <= cnt; ++i ) {
-		cout << name[i] << endl << "pre:\n" ;
+		cout << name[i] << endl ;
+		cout << credit[i] << endl ;
 
+		/*
+		cout << "pre:\n" ;
 		for ( int j = 0; j < pre[i].size(); ++j ) {
 			printf("\n\tset:\n") ;
 			for ( int k = 0; k < pre[i][j].size(); ++k ) {
@@ -92,6 +112,21 @@ int main() {
 			}
 		}
 		cout << "end\n" ;
+		*/
+	}
+
+	if ( sum_credit_tried == 0 )
+		printf("GPA: 0.0\n") ;
+	else
+		printf("GPA: %.1f\n", 1.0 * sum_score / sum_credit_tried) ;
+	printf("Hours Attempted: %d\n", sum_credit_tried) ;
+	printf("Hours Completed: %d\n", sum_credit_get) ;
+	printf("Credits Remaining: %d\n", gratuate_credit - sum_credit_get) ;
+
+	printf("Possible Courses to Take Next\n") ;
+	if (gratuate_credit == sum_credit_get ) {
+		printf("  None - Congratulations!\n") ;
+		return 0 ;
 	}
 
 
