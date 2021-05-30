@@ -2,9 +2,10 @@ int n1, m1, n2, m2 ;
 int A[30][30], B[30][30], C[30][30] ;
 
 function void _main(void)
+declare
+	int i, j, k ;
 do
 	_input("%d%d", &n1, &m1) ;
-	int i, j, k ;
 	i = 1;
 	loop (i <= n1) do
 		j = 1 ;
