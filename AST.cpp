@@ -10,10 +10,10 @@
 #include <string.h>
 #include <queue>
 
-int AST::ID = 0;
+int AST::IDAccumulate = 0;
 AST::AST(Type type, const char *name)
 {
-    this->id = ++ID;
+    this->id = ++IDAccumulate;
     this->ntype = type;
     strcpy(this->name, name);
     this->dtype = DataType::nonedt;
@@ -24,7 +24,7 @@ AST::AST(Type type, const char *name)
 
 AST::AST(int value)
 {
-    this->id = ++ID;
+    this->id = ++IDAccumulate;
     this->ntype = Type::cconst;
     strcpy(this->name, "\0");
     this->dtype = DataType::integer;
@@ -36,7 +36,7 @@ AST::AST(int value)
 
 AST::AST(char *value)
 {
-    this->id = ++ID;
+    this->id = ++IDAccumulate;
     this->ntype = Type::cconst;
     strcpy(this->name, "\0");
     this->dtype = DataType::string;
