@@ -2,12 +2,13 @@
     Name:        AST.h 
     Version:     v2.2
     Modefied by: fusion
-                 2021-6-2 17:58
+                 2021-6-2 22:13
 ************************************/
 
 #ifndef AST_H
 #define AST_H
 #include <vector>
+#include <string>
 #include <map>
 
 typedef enum Type
@@ -59,8 +60,8 @@ typedef union Value
 class Var_attr;
 class Fun_attr;
 class AST;
-typedef std::map<char *, Var_attr *> Vmap;
-typedef std::map<char *, Fun_attr *> Fmap;
+typedef std::map<std::string, Var_attr *> Vmap;
+typedef std::map<std::string, Fun_attr *> Fmap;
 extern AST *head;
 extern Vmap glovars;
 extern Fmap funs;
@@ -68,13 +69,13 @@ extern Fmap funs;
 class Var_attr
 {
 public:
-    char *name;
+    std::string name;
     int dim;
     DataType dtype;
     Fun_attr *belong;
     std::vector<int> *dimention;
 
-    Var_attr(char *name, DataType dtype)
+    Var_attr(std::string name, DataType dtype)
     {
         this->dim = 0;
         this->name = name;
@@ -88,13 +89,13 @@ public:
 class Fun_attr
 {
 public:
-    char *name;
+    std::string name;
     int argc;
     DataType rtype;
     Vmap *locvars;
-    std::vector<std::pair<DataType, char *> > *argv;
+    std::vector<std::pair<DataType, std::string> > *argv;
 
-    Fun_attr(char *name, DataType rtype)
+    Fun_attr(std::string name, DataType rtype)
     {
         this->name = name;
         this->argc = 0;
@@ -111,7 +112,7 @@ public:
     static int IDAccumulate;
     int id;
     Type ntype;
-    char name[32]; /* only for var */
+    std::string name; /* only for var */
     DataType dtype;
     Value dvalue; /* only for const */
     Operator op;  /* only for operator */

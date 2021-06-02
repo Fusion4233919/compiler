@@ -1,8 +1,8 @@
 /************************************
     Name:        main.cpp 
-    Version:     v1.2
+    Version:     v1.3
     Modefied by: fusion
-                 2021-6-2 13:55
+                 2021-6-2 22:13
 ************************************/
 
 #include <stdio.h>
@@ -20,15 +20,15 @@ void showTable(void)
 {
     for(auto _ = glovars.begin(); _ != glovars.end(); _++)
     {
-        printf("%s %s %d %d\n", _->first, _->second->name, _->second->dtype, _->second->dim);
+        printf("%s %s %d %d\n", _->first.c_str(), _->second->name.c_str(), _->second->dtype, _->second->dim);
     }
     puts("");
     for (auto _ = funs.begin(); _ != funs.end(); _++)
     {
-        printf("%s %s %d \n", _->first, _->second->name, _->second->rtype);
+        printf("%s %s %d \n", _->first.c_str(), _->second->name.c_str(), _->second->rtype);
         for (auto __ = _->second->locvars->begin(); __ != _->second->locvars->end(); __++)
         {
-            printf("\t%s %s %d %d\n", __->first, __->second->name, __->second->dtype, __->second->dim);
+            printf("\t%s %s %d %d\n", __->first.c_str(), __->second->name.c_str(), __->second->dtype, __->second->dim);
         }
     }
 }
@@ -45,7 +45,9 @@ int main(int argc, const char *argv[])
     yyin = file_in;
     yyparse();
     fclose(file_in);
-    head->BuildTable(&glovars);
+    //head->print();
+    head->BuildTable(NULL);
     showTable();
+    head->CheckTable(NULL);
     return 0;
 }
