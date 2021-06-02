@@ -91,7 +91,7 @@ Fun_Var : TYPE ID {$$=new AST(Type::fvar, $2); delete $2; $$->Insert($1); }
 
 LValue : LValue '[' LValue ']' {$$->Insert($3);}
        | LValue '[' Number ']' {$$->Insert(new AST($3));}
-       | ID {$$=new AST(Type::var, $1); delete $1; }
+       | ID {$$=new AST(Type::lvalue, $1); delete $1; }
        ;
 
 Fun_Value : Fun_ID '(' List ')' {$$=new AST(Type::exp, $1); delete $1; $$->Insert($3);}

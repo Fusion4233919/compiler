@@ -20,7 +20,8 @@ typedef enum Type
     list,
     opr,
     tydf,
-    exp
+    exp,
+    lvalue
 } Type;
 
 typedef enum Operator
@@ -73,6 +74,7 @@ public:
     AST(char *value);
     ~AST();
     void Insert(AST *);
+    void BuildTable(Vmap *);
     void print(void);
 };
 
@@ -81,13 +83,17 @@ class Var_attr
 public:
     char *name;
     int ref;
+    int dim;
     DataType dtype;
-    Value dvalue;
+    std::vector<int> *dimention;
 
     Var_attr(char *name, DataType dtype)
     {
+        this->ref = 0;
+        this->dim = 0;
         this->name = name;
         this->dtype = dtype;
+        this->dimention = NULL;
     }
     ~Var_attr();
 };
@@ -112,5 +118,7 @@ public:
 
 typedef std::map<char *, Fun_attr *> Fmap;
 extern AST *head;
+extern Vmap var_table;
+extern Fmap fun_table;
 
 #endif
