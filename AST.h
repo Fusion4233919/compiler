@@ -58,7 +58,7 @@ typedef union Value
 class AST
 {
 public:
-    static int ID;
+    static int IDAccumulate;
     int id;
     Type ntype;
     char name[32]; /* only for var */
@@ -92,6 +92,8 @@ public:
     ~Var_attr();
 };
 
+typedef std::map<char *, Var_attr *> Vmap;
+
 class Fun_attr
 {
 public:
@@ -108,7 +110,6 @@ public:
     ~Fun_attr() { delete this->locvars; }
 };
 
-typedef std::map<char *, Var_attr *> Vmap;
 typedef std::map<char *, Fun_attr *> Fmap;
 extern AST *head;
 

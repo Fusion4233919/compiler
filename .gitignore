@@ -58,3 +58,9 @@ dkms.conf
 
 # Visual Studio Code Configurations
 .vscode/
+
+# Build Files
+*.l.cpp
+*.y.cpp
+.o
+main
