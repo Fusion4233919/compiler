@@ -6,8 +6,9 @@
 ************************************/
 
 #include "AST.h"
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
 #include <queue>
 
 int AST::IDAccumulate = 0;
