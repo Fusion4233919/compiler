@@ -73,3 +73,9 @@ Makefile
 
 # MacOS
 .DS_Store
+
+# IDEA
+.idea
+
+# Misc
+mhl.cmm

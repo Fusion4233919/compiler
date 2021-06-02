@@ -45,7 +45,6 @@ int main(int argc, const char *argv[])
     yyin = file_in;
     yyparse();
     fclose(file_in);
-    head->BuildTable(&glovars);
-    showTable();
+    head->print();
     return 0;
 }
