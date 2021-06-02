@@ -9,6 +9,7 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include "AST.h"
+    #include "scanner.l.cpp"
     
     AST *temp;
     AST *head = NULL;

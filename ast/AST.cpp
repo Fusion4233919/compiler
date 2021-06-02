@@ -6,9 +6,9 @@
 ************************************/
 
 #include "AST.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
 #include <queue>
 
 int AST::IDAccumulate = 0;
@@ -123,7 +123,6 @@ void AST::BuildTable(Vmap *current_var_table)
         this->children->at(3)->BuildTable(funs[this->name]->locvars);
         break;
     case Type::list:
-        /* TODO: List */
         if (strcmp(this->name, "Def_List") == 0)
         {
             for (int _ = 0; _ < this->child_num; _++)

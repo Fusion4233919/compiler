@@ -6,6 +6,7 @@
 /************************************/
 
 %{
+    #pragma once
     #include <stdio.h>
     #include "AST.h"
     #include "parser.y.h"

@@ -62,5 +62,14 @@ dkms.conf
 # Build Files
 *.l.cpp
 *.y.cpp
+*.y.h
 .o
-main
+compiler
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# MacOS
+.DS_Store
