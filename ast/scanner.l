@@ -67,6 +67,26 @@
     return String;
 }
 
+\'([A-Z]|[a-z]|[\+\-\*\/\%\=\<\>\!\@\#\$\^\&\(\)\[\]\,\;\\])\' {
+    yylval.num = yytext[1];
+    return Number;
+}
+
+\'\\n\' {
+    yylval.num = '\n';
+    return Number;
+}
+
+\'\\t\' {
+    yylval.num = '\t';
+    return Number;
+}
+
+\'\\r\' {
+    yylval.num = '\r';
+    return Number;
+}
+
 0|([1-9][0-9]*) {
     yylval.num = atoi(yytext);
     return Number;
