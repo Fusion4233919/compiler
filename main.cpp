@@ -1,14 +1,13 @@
 /************************************
     Name:        main.cpp 
-    Version:     v1.1
+    Version:     v1.2
     Modefied by: fusion
-                 2021-5-28 10:59
+                 2021-6-2 13:55
 ************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "AST.h"
-#include "parser.y.h"
 
 extern int yyparse();
 extern FILE *yyin;
