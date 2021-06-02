@@ -12,8 +12,6 @@
 #include <queue>
 
 int AST::IDAccumulate = 0;
-Vmap var_table;
-Fmap fun_table;
 
 AST::AST(Type type, const char *name)
 {
@@ -105,8 +103,8 @@ void AST::BuildTable(Vmap *current_var_table)
     case Type::none:
         if (strcmp(this->name, "program") == 0)
         {
-            this->children->at(0)->BuildTable(&var_table);
-            this->children->at(1)->BuildTable(&var_table);
+            this->children->at(0)->BuildTable(&glovars);
+            this->children->at(1)->BuildTable(&glovars);
         }
         if (strcmp(this->name, "Def") == 0)
         {
@@ -119,10 +117,10 @@ void AST::BuildTable(Vmap *current_var_table)
     case Type::func:
         /* FUN_TYPE Fun_Var_List  Def_List Exp_List */
         this->dtype = this->children->at(0)->dtype;
-        fun_table[this->name] = new Fun_attr(this->name, this->dtype);
-        this->children->at(1)->BuildTable(fun_table[this->name]->locvars);
-        this->children->at(2)->BuildTable(fun_table[this->name]->locvars);
-        this->children->at(3)->BuildTable(fun_table[this->name]->locvars);
+        funs[this->name] = new Fun_attr(this->name, this->dtype);
+        this->children->at(1)->BuildTable(funs[this->name]->locvars);
+        this->children->at(2)->BuildTable(funs[this->name]->locvars);
+        this->children->at(3)->BuildTable(funs[this->name]->locvars);
         break;
     case Type::list:
         /* TODO: List */
@@ -134,7 +132,7 @@ void AST::BuildTable(Vmap *current_var_table)
         if (strcmp(this->name, "Fun_List") == 0)
         {
             for (int _ = 0; _ < this->child_num; _++)
-                this->children->at(_)->BuildTable(&var_table);
+                this->children->at(_)->BuildTable(&glovars);
         }
         if (strcmp(this->name, "Var_List") == 0)
         {

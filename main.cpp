@@ -16,6 +16,23 @@ static FILE *file_in;
 Vmap glovars;
 Fmap funs;
 
+void showTable(void)
+{
+    for(auto _ = glovars.begin(); _ != glovars.end(); _++)
+    {
+        printf("%s %s %d %d\n", _->first, _->second->name, _->second->dtype, _->second->dim);
+    }
+    puts("");
+    for (auto _ = funs.begin(); _ != funs.end(); _++)
+    {
+        printf("%s %s %d \n", _->first, _->second->name, _->second->rtype);
+        for (auto __ = _->second->locvars->begin(); __ != _->second->locvars->end(); __++)
+        {
+            printf("\t%s %s %d %d\n", __->first, __->second->name, __->second->dtype, __->second->dim);
+        }
+    }
+}
+
 int main(int argc, const char *argv[])
 {
     const char *file_in_name = argv[1];
@@ -28,6 +45,7 @@ int main(int argc, const char *argv[])
     yyin = file_in;
     yyparse();
     fclose(file_in);
-    head->print();
+    head->BuildTable(&glovars);
+    showTable();
     return 0;
 }

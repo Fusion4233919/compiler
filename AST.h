@@ -56,28 +56,6 @@ typedef union Value
     char *str;
 } Value;
 
-class AST
-{
-public:
-    static int IDAccumulate;
-    int id;
-    Type ntype;
-    char name[32]; /* only for var */
-    DataType dtype;
-    Value dvalue; /* only for const */
-    Operator op;  /* only for operator */
-    int child_num;
-    std::vector<AST *> *children;
-
-    AST(Type type, const char *name);
-    AST(int value);
-    AST(char *value);
-    ~AST();
-    void Insert(AST *);
-    void BuildTable(Vmap *);
-    void print(void);
-};
-
 class Var_attr
 {
 public:
@@ -116,9 +94,31 @@ public:
     ~Fun_attr() { delete this->locvars; }
 };
 
+class AST
+{
+public:
+    static int IDAccumulate;
+    int id;
+    Type ntype;
+    char name[32]; /* only for var */
+    DataType dtype;
+    Value dvalue; /* only for const */
+    Operator op;  /* only for operator */
+    int child_num;
+    std::vector<AST *> *children;
+
+    AST(Type type, const char *name);
+    AST(int value);
+    AST(char *value);
+    ~AST();
+    void Insert(AST *);
+    void BuildTable(Vmap *);
+    void print(void);
+};
+
 typedef std::map<char *, Fun_attr *> Fmap;
 extern AST *head;
-extern Vmap var_table;
-extern Fmap fun_table;
+extern Vmap glovars;
+extern Fmap funs;
 
 #endif
