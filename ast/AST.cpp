@@ -1,8 +1,8 @@
 /************************************
     Name:        AST.cpp 
-    Version:     v1.2
+    Version:     v2.2
     Modefied by: fusion
-                 2021-5-26 22:58
+                 2021-6-2 20:20
 ************************************/
 
 #include "AST.h"
@@ -96,76 +96,258 @@ void AST::print(void)
     }
 }
 
-void AST::BuildTable(Vmap *current_var_table)
+void AST::BuildTable(Fun_attr *current_fun)
 {
+    Var_attr *temp = NULL;
     switch (this->ntype)
     {
     case Type::none:
+    {
         if (strcmp(this->name, "program") == 0)
         {
-            this->children->at(0)->BuildTable(&glovars);
-            this->children->at(1)->BuildTable(&glovars);
+            this->children->at(0)->BuildTable(NULL);
+            this->children->at(1)->BuildTable(NULL);
         }
         if (strcmp(this->name, "Def") == 0)
         {
             /* TYPE Var_List */
             this->children->at(1)->dtype = this->children->at(0)->dtype;
             this->dtype = this->children->at(0)->dtype;
-            this->children->at(1)->BuildTable(current_var_table);
+            this->children->at(1)->BuildTable(current_fun);
         }
-        break;
+    }
+    break;
     case Type::func:
+    {
         /* FUN_TYPE Fun_Var_List  Def_List Exp_List */
         this->dtype = this->children->at(0)->dtype;
+        if (funs.find(this->name) != funs.end())
+        {
+            printf("Multiple definition of %s\n", this->name);
+            return;
+        }
         funs[this->name] = new Fun_attr(this->name, this->dtype);
-        this->children->at(1)->BuildTable(funs[this->name]->locvars);
-        this->children->at(2)->BuildTable(funs[this->name]->locvars);
-        this->children->at(3)->BuildTable(funs[this->name]->locvars);
-        break;
+        this->children->at(1)->BuildTable(funs[this->name]);
+        this->children->at(2)->BuildTable(funs[this->name]);
+    }
+    break;
     case Type::list:
+    {
         if (strcmp(this->name, "Def_List") == 0)
         {
             for (int _ = 0; _ < this->child_num; _++)
-                this->children->at(_)->BuildTable(current_var_table);
+                this->children->at(_)->BuildTable(current_fun);
         }
         if (strcmp(this->name, "Fun_List") == 0)
         {
             for (int _ = 0; _ < this->child_num; _++)
-                this->children->at(_)->BuildTable(&glovars);
+                this->children->at(_)->BuildTable(NULL);
         }
         if (strcmp(this->name, "Var_List") == 0)
         {
             for (int _ = 0; _ < this->child_num; _++)
             {
                 this->children->at(_)->dtype = this->dtype;
-                this->children->at(_)->BuildTable(current_var_table);
+                this->children->at(_)->BuildTable(current_fun);
             }
         }
         if (strcmp(this->name, "Fun_Var_List") == 0)
         {
             for (int _ = 0; _ < this->child_num; _++)
-                this->children->at(_)->BuildTable(current_var_table);
+                this->children->at(_)->BuildTable(current_fun);
+        }
+    }
+    break;
+    case Type::var:
+    {
+        if (current_fun == NULL)
+        {
+            if (glovars.find(this->name) != glovars.end())
+            {
+                printf("Multiple definition of %s\n", this->name);
+                return;
+            }
+        }
+        else if (current_fun->locvars->find(this->name) != current_fun->locvars->end())
+        {
+            printf("Multiple definition of %s\n", this->name);
+            return;
+        }
+        temp = new Var_attr(this->name, this->dtype);
+        if (current_fun != NULL)
+            (*(current_fun->locvars))[this->name] = temp;
+        temp->belong = current_fun;
+        if (this->child_num)
+        {
+            temp->dim = this->child_num;
+            temp->dimention = new std::vector<int>;
+            for (int _ = 0; _ < this->child_num; _++)
+                temp->dimention->push_back((this->children->at(_)->dvalue).integer);
+        }
+    }
+    break;
+    case Type::fvar:
+    {
+        /* TYPE */
+        if (current_fun->locvars->find(this->name) != current_fun->locvars->end())
+        {
+            printf("Multiple definition of %s\n", this->name);
+            return;
+        }
+        this->dtype = this->children->at(0)->dtype;
+        temp = new Var_attr(this->name, this->dtype);
+        (*(current_fun->locvars))[this->name] = temp;
+        temp->belong = current_fun;
+        if (current_fun->argc == 0)
+        {
+            current_fun->argv = new std::vector<std::pair<DataType, char *>>;
+        }
+        current_fun->argc++;
+        current_fun->argv->push_back(std::pair<DataType, char *>(this->dtype, this->name));
+    }
+    break;
+    default:
+        break;
+    }
+}
+
+void AST::CheckTable(Fun_attr *current_fun)
+{
+    Var_attr *temp = NULL;
+    switch (this->ntype)
+    {
+    case Type::func:
+    {
+        this->children->at(3)->CheckTable(funs[this->name]);
+    }
+    break;
+    case Type::list:
+    {
+        if (strcmp(this->name, "Fun_List") == 0)
+        {
+            for (int _ = 0; _ < this->child_num; _++)
+                this->children->at(_)->CheckTable(NULL);
         }
         if (strcmp(this->name, "Exp_List") == 0)
         {
             for (int _ = 0; _ < this->child_num; _++)
-                this->children->at(_)->BuildTable(current_var_table);
+                this->children->at(_)->CheckTable(current_fun);
         }
-        break;
-    case Type::var:
-        (*current_var_table)[this->name] = new Var_attr(this->name,this->dtype);
-        if (this->child_num)
+        if (strcmp(this->name, "List") == 0)
         {
-            (*current_var_table)[this->name]->dim = this->child_num;
-            (*current_var_table)[this->name]->dimention = new std::vector<int>;
-            for(int _ = 0; _ < this->child_num; _++)
-                (*current_var_table)[this->name]->dimention->push_back((this->children->at(_)->dvalue).integer);
+            for (int _ = 0; _ < this->child_num; _++)
+                this->children->at(_)->CheckTable(current_fun);
         }
-        break;
-    case Type::fvar:
-        /* TYPE */
-        this->dtype = this->children->at(0)->dtype;
-        (*current_var_table)[this->name] = new Var_attr(this->name,this->dtype);
+        if (strcmp(this->name, "LList") == 0)
+        {
+            for (int _ = 0; _ < this->child_num; _++)
+                this->children->at(_)->CheckTable(current_fun);
+        }
+    }
+    break;
+    case Type::lvalue:
+    {
+        temp = NULL;
+        if (current_fun->locvars->find(this->name) != current_fun->locvars->end())
+        {
+            temp = current_fun->locvars->find(this->name)->second;
+        }
+        else if (glovars.find(this->name) != glovars.end())
+        {
+            temp = glovars.find(this->name)->second;
+        }
+        else
+        {
+            printf("No definition of %s\n", this->name);
+            return;
+        }
+
+        if (temp->dim != this->child_num)
+        {
+            printf("Dimention not match of %s\n", this->name);
+            return;
+        }
+        this->dtype = temp->dtype;
+        for (int _ = 0; _ < this->child_num; _++)
+            if (this->children->at(_)->ntype == Type::lvalue)
+                this->children->at(_)->CheckTable(current_fun);
+    }
+    break;
+    case Type::exp:
+    {
+        if (this->name[0] == '_')
+        {
+            if (funs.find(this->name) == funs.end())
+            {
+                printf("No definition of %s\n", this->name);
+                return;
+            }
+            Fun_attr *temp = funs.find(this->name)->second;
+            this->dtype = temp->rtype;
+            if (this->child_num == 0)
+            {
+                if (temp->argc != 0)
+                {
+                    printf("No definition of %s()\n", this->name);
+                    return;
+                }
+            }
+            else if (this->children->at(0)->child_num != temp->argc)
+            {
+                printf("Number not match of %s\n", this->name);
+                return;
+            }
+            else
+            {
+                this->children->at(0)->CheckTable(current_fun);
+                for(int _ = 0; _ < temp->argc; _++)
+                    if (this->children->at(0)->children->at(_)->dtype != (temp->argv->at(_)).first)
+                    {
+                        printf("Type not match on %s of %s\n", (temp->argv->at(_)).second, this->name);
+                        return;
+                    }
+            }
+        }
+        else if (strcmp(this->name, "return") == 0)
+        {
+            if (this->child_num == 0)
+            {
+                if (current_fun->rtype != DataType::vvoid)
+                {
+                    printf("Return Type not match of %s\n", current_fun->name);
+                    return ;
+                }
+            }
+            else
+            {
+                this->children->at(0)->CheckTable(current_fun);
+                if (current_fun->rtype != this->children->at(0)->dtype)
+                {
+                    printf("Return type not match of %s\n", current_fun->name);
+                    return ;
+                }
+            }
+        }
+        else if (strcmp(this->name, "scanf") == 0)
+        {
+            this->children->at(1)->CheckTable(current_fun);
+        }
+        else if (strcmp(this->name, "printf") == 0)
+        {
+            if (this->child_num > 1)
+                this->children->at(1)->CheckTable(current_fun);
+        }
+        else if (strcmp(this->name, "As_Exp") == 0)
+        {
+            this->children->at(0)->CheckTable(current_fun);
+            this->children->at(1)->CheckTable(current_fun);
+            if (this->children->at(0)->dtype != this->children->at(1)->dtype)
+            {
+                printf("Assign type not match of %s\n", this->children->at(0)->name);
+                return ;
+            }
+        }
+    }
         break;
     default:
         break;

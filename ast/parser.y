@@ -108,7 +108,7 @@ List : List ',' LValue {$$=$1; $$->Insert($3);}
      ;
 
 LList : LList ',' '&' LValue {$$=$1; $$->Insert($4);}
-      | '&' LValue {$$=new AST(Type::list, "List"); $$->Insert($2);}
+      | '&' LValue {$$=new AST(Type::list, "LList"); $$->Insert($2);}
      ;
 
 Exp_List : Exp_List Exp {$$=$1; $$->Insert($2);}

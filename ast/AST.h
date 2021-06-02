@@ -1,8 +1,8 @@
 /************************************
     Name:        AST.h 
-    Version:     v1.3
+    Version:     v2.2
     Modefied by: fusion
-                 2021-5-28 10:58
+                 2021-6-2 17:58
 ************************************/
 
 #ifndef AST_H
@@ -56,42 +56,53 @@ typedef union Value
     char *str;
 } Value;
 
+class Var_attr;
+class Fun_attr;
+class AST;
+typedef std::map<char *, Var_attr *> Vmap;
+typedef std::map<char *, Fun_attr *> Fmap;
+extern AST *head;
+extern Vmap glovars;
+extern Fmap funs;
+
 class Var_attr
 {
 public:
     char *name;
-    int ref;
     int dim;
     DataType dtype;
+    Fun_attr *belong;
     std::vector<int> *dimention;
 
     Var_attr(char *name, DataType dtype)
     {
-        this->ref = 0;
         this->dim = 0;
         this->name = name;
         this->dtype = dtype;
+        this->belong = NULL;
         this->dimention = NULL;
     }
     ~Var_attr();
 };
 
-typedef std::map<char *, Var_attr *> Vmap;
-
 class Fun_attr
 {
 public:
     char *name;
+    int argc;
     DataType rtype;
     Vmap *locvars;
+    std::vector<std::pair<DataType, char *> > *argv;
 
     Fun_attr(char *name, DataType rtype)
     {
         this->name = name;
+        this->argc = 0;
         this->rtype = rtype;
         this->locvars = new Vmap;
+        this->argv = NULL;
     }
-    ~Fun_attr() { delete this->locvars; }
+    ~Fun_attr() { delete this->locvars; delete this->argv;}
 };
 
 class AST
@@ -112,13 +123,10 @@ public:
     AST(char *value);
     ~AST();
     void Insert(AST *);
-    void BuildTable(Vmap *);
+    void BuildTable(Fun_attr *);
+    void CheckTable(Fun_attr *);
     void print(void);
 };
 
-typedef std::map<char *, Fun_attr *> Fmap;
-extern AST *head;
-extern Vmap glovars;
-extern Fmap funs;
 
 #endif
