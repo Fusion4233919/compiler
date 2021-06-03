@@ -1,3 +1,5 @@
+#ifndef GEN_H
+#define GEN_H
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
@@ -17,3 +19,11 @@
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
 #include "llvm/Transforms/Utils.h"
+
+#include "AST.h"
+
+namespace gen {
+    void ProgramGen(AST* node);
+}
+
+#endif

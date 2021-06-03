@@ -76,6 +76,9 @@ Makefile
 
 # IDEA
 .idea
+Testing/
+*.cbp
 
 # Misc
 mhl.cmm
+mhl.ll

@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "AST.h"
+#include "gen.h"
 
 extern int yyparse();
 extern FILE *yyin;
