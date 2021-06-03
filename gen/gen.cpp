@@ -136,9 +136,9 @@ namespace gen {
         llvm::FunctionType *FT = llvm::FunctionType::get(FunType, TypeVector, false);
         llvm::Function *Func;
         if (strcmp(FunDefNode->name, "_main") == 0) {
-            Func = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, "main", llvmModule);
+            Func = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, "main", &llvmModule);
         } else {
-            Func = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, std::string(FunDefNode->name), llvmModule);
+            Func = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, std::string(FunDefNode->name), &llvmModule);
         }
         NamedFuncs[FunDefNode->name] = new FunctionWrapper(Func, FunType);
 
@@ -175,9 +175,6 @@ namespace gen {
         GlobalVarDeclListGen(DefList);
 
         for (auto* FunDef : *(FunDefList->children)) {
-            if (strcmp(FunDef->name, "_main")) {
-                FuncGen(FunDef);
-            }
             FuncGen(FunDef);
         }
     }
