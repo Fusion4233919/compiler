@@ -1,0 +1,41 @@
+string Name[200] ;
+int credit[200] ;
+int score[200] ;
+int tried[200] ;
+
+int SumScore ;
+int SumCreditTried ;
+int SumCreditGet ;
+int GratuateCredit ;
+
+int _main(void)
+declare
+	int tmp ;
+	int cnt ;
+do
+	_input("%c", &tmp) £»
+	cnt = 1 ;
+	SumScore = 0 ;
+	SumCreditTried = 0 ;
+	SumCreditGet = 0 ;
+	GratuateCredit = 0 ;
+	loop(1 == 1) do
+		if (tmp == '\n' || tmp == '\r' ) do
+			break ;
+		done
+		loop (tmp != '|' ) do
+			name[cnt] = name[cnt] + tmp ;
+			_input("%c", &tmp) ;
+		done
+
+		_input("%d", &credit[cnt]) ;
+
+		_input("%c", &tmp) ;
+		_input("%c", &tmp) ;
+
+		loop (tmp != '|' ) {
+
+		}
+
+	done
+done
