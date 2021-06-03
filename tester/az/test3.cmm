@@ -1,0 +1,14 @@
+function void _foo(void)
+declaration
+    int i ;
+do
+    i = 1 ;
+done
+
+function void _main(void)
+declaration
+    int j ;
+do
+    _foo() ;
+    j = i ;
+done

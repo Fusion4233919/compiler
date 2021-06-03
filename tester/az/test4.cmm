@@ -1,0 +1,13 @@
+function void _main(void)
+declare
+    string S ;
+    int a ;
+    int A[20] ;
+do
+    S = "AAAA" ;
+    a = 2 ;
+    S = S + a ;
+    
+    a = S ;
+    A = S ;
+done

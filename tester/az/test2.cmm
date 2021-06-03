@@ -1,0 +1,8 @@
+string x ;
+
+function void _main(void)
+declare
+do
+    _output("RUA") ;
+done
+// declaration is none

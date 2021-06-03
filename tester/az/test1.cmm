@@ -1,0 +1,8 @@
+function void _main(void)
+declare
+  int i, j, k ;
+do
+    k = 1 ;
+    j = i + 1;  // no initialization
+    c = k ;     // no declaration
+done
