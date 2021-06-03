@@ -1,8 +1,6 @@
 #include "gen.h"
-#include "AST.h"
 
 namespace gen {
-
     struct ValueWrapper {
         llvm::Value *value = nullptr;
         DataType type = DataType::vvoid;
@@ -111,6 +109,10 @@ namespace gen {
         }
     }
 
+    static llvm::Value *ExpListGen(AST *ExpList) {
+
+    }
+
     static void FuncGen(AST *FunDefNode) {
         auto FunDataType = FunDefNode->children->at(0)->dtype;
         auto *FunType = FunDataType == DataType::vvoid ?
@@ -149,7 +151,7 @@ namespace gen {
         for (auto &Arg : Func->args()) {
             auto *Var = FunVarList->children->at(index);
             auto *name = Var->name;
-            auto type = Var->dtype;
+            auto type = Var->children->at(0)->dtype;
             CreateLocalVariable(name, type);
             Arg.setName(std::string(name));
             irBuilder.CreateStore(&Arg, NamedValues[std::string(name)]->value);
@@ -168,7 +170,7 @@ namespace gen {
         }
     }
 
-    static void ProgramGen(AST *node) {
+    void ProgramGen(AST *node) {
         AST *DefList = node->children->at(0);
         AST *FunDefList = node->children->at(1);
 
@@ -177,5 +179,9 @@ namespace gen {
         for (auto* FunDef : *(FunDefList->children)) {
             FuncGen(FunDef);
         }
+
+        std::error_code EC;
+        llvm::raw_fd_ostream llout("mhl.ll", EC);
+        llvmModule.print(llout, nullptr);
     }
 }

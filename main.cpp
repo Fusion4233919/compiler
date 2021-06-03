@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "AST.h"
+#include "gen.h"
 
 extern int yyparse();
 extern FILE *yyin;
@@ -46,5 +47,7 @@ int main(int argc, const char *argv[])
     yyparse();
     fclose(file_in);
     head->print();
+    printf("\n");
+    gen::ProgramGen(head);
     return 0;
 }
