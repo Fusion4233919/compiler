@@ -82,6 +82,35 @@ namespace gen {
         }
     }
 
+    static void SingleLocalDeclGen(char* Name, DataType Type) {
+        CreateLocalVariable(Name, Type);
+        auto *wvalue = new ValueWrapper(NamedValues[std::string(Name)]->value, Type);
+        NamedValues[std::string(Name)] = wvalue;
+    }
+
+    static void ArrayLocalDeclGen(char* Name, DataType Type, int Len) {
+        // TODO: array
+    }
+
+    static void LocalVarDeclGen(AST* Def) {
+        auto Type = Def->children->at(0)->dtype;
+        auto *VarList = Def->children->at(1);
+
+        for (auto* Var : *(VarList->children)) {
+            if (Var->child_num == 0) {
+                SingleLocalDeclGen(Var->name, Type);
+            } else {
+                ArrayLocalDeclGen(Var->name, Type, Var->children->at(0)->dvalue.integer);
+            }
+        }
+    }
+
+    static void LocalVarDeclListGen(AST *DefList) {
+        for (auto* Def : *(DefList->children)) {
+            LocalVarDeclGen(Def);
+        }
+    }
+
     static void FuncGen(AST *FunDefNode) {
         auto FunDataType = FunDefNode->children->at(0)->dtype;
         auto *FunType = FunDataType == DataType::vvoid ?
@@ -105,7 +134,12 @@ namespace gen {
         }
 
         llvm::FunctionType *FT = llvm::FunctionType::get(FunType, TypeVector, false);
-        llvm::Function *Func = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, std::string(FunDefNode->name), llvmModule);
+        llvm::Function *Func;
+        if (strcmp(FunDefNode->name, "_main") == 0) {
+            Func = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, "main", llvmModule);
+        } else {
+            Func = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, std::string(FunDefNode->name), llvmModule);
+        }
         NamedFuncs[FunDefNode->name] = new FunctionWrapper(Func, FunType);
 
         llvm::BasicBlock *BB = llvm::BasicBlock::Create(llvmContext, "entry", Func);
@@ -142,14 +176,7 @@ namespace gen {
 
         for (auto* FunDef : *(FunDefList->children)) {
             if (strcmp(FunDef->name, "_main")) {
-                llvm::Type *llvmIntType = llvm::Type::getInt32Ty(llvmContext);
-                llvm::FunctionType *FuncType = llvm::FunctionType::get(llvmIntType, false);
-                llvm::Function *MainFunc = llvm::Function::Create(FuncType, llvm::Function::ExternalLinkage, "main", &llvmModule);
-                llvm::BasicBlock *Block = llvm::BasicBlock::Create(llvmContext, "main", MainFunc);
-                irBuilder.SetInsertPoint(Block);
-
                 FuncGen(FunDef);
-                return;
             }
             FuncGen(FunDef);
         }
