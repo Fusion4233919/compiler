@@ -20,7 +20,7 @@ typedef enum Type
     list,
     opr,
     tydf,
-    exp,
+    expr,
     lvalue
 } Type;
 
