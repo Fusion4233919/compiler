@@ -40,7 +40,7 @@ namespace gen {
         }
     }
 
-    static void SingleGlobalDeclGen(char* Name, DataType Type) {
+    static void SingleGlobalDeclGen(std::string Name, DataType Type) {
         llvm::Constant *InitConst;
         llvm::Value *Value;
         if (Type == DataType::integer) {
@@ -54,11 +54,11 @@ namespace gen {
         NamedValues[std::string(Name)] = wvalue;
     }
 
-    static void ArrayGlobalDeclGen(char* Name, DataType Type, int Len) {
+    static void ArrayGlobalDeclGen(std::string Name, DataType Type, int Len) {
         // TODO: array
     }
 
-    static void CreateLocalVariable(char *Name, DataType Type) {
+    static void CreateLocalVariable(std::string Name, DataType Type) {
         llvm::Type *Ty = GetLLVMType(Type);
         // TODO: array
         llvm::Value *Value = irBuilder.CreateAlloca(Ty, nullptr, std::string(Name));
@@ -85,13 +85,13 @@ namespace gen {
         }
     }
 
-    static void SingleLocalDeclGen(char* Name, DataType Type) {
+    static void SingleLocalDeclGen(std::string Name, DataType Type) {
         CreateLocalVariable(Name, Type);
         auto *wvalue = new ValueWrapper(NamedValues[std::string(Name)]->value, Type);
         NamedValues[std::string(Name)] = wvalue;
     }
 
-    static void ArrayLocalDeclGen(char* Name, DataType Type, int Len) {
+    static void ArrayLocalDeclGen(std::string Name, DataType Type, int Len) {
         // TODO: array
     }
 
@@ -136,7 +136,7 @@ namespace gen {
     static ValueWrapper *CallGen(AST *Expr);
 
     static ValueWrapper *OpFactorGen(AST *Factor) {
-        if (Factor->ntype == Type::expr && strcmp(Factor->name, "Op_Exp") == 0) {
+        if (Factor->ntype == Type::expr && Factor->name == "Op_Exp") {
             return OpExprGen(Factor);
         } else if (Factor->ntype == Type::cconst && Factor->dtype == DataType::integer) {
             return new ValueWrapper(llvm::ConstantInt::get(
@@ -206,7 +206,7 @@ namespace gen {
     static ValueWrapper *CondExprGen(AST *Expr);
 
     static ValueWrapper *CondFactorGen(AST *Factor) {
-        if (Factor->ntype == Type::expr && strcmp(Factor->name, "Cond_Exp") == 0) {
+        if (Factor->ntype == Type::expr && Factor->name == "Cond_Exp") {
             return CondExprGen(Factor);
         } else {
             auto *LHS = OpExprGen(Factor->children->at(0));
@@ -410,25 +410,25 @@ namespace gen {
     }
 
     static void ExprGen(AST *Expr) {
-        if (strcmp(Expr->name, "As_Exp") == 0) {
+        if (Expr->name == "As_Exp") {
             AssignGen(Expr);
-        } else if (strcmp(Expr->name, "Op_Exp") == 0) {
+        } else if (Expr->name == "Op_Exp") {
             OpExprGen(Expr);
-        } else if (strcmp(Expr->name, "Cond_Exp") == 0) {
+        } else if (Expr->name == "Cond_Exp") {
             CondExprGen(Expr);
-        } else if (strcmp(Expr->name, "If_Stmt") == 0) {
+        } else if (Expr->name == "If_Stmt") {
             IfGen(Expr);
-        } else if (strcmp(Expr->name, "Lop_Stmt") == 0) {
+        } else if (Expr->name == "Lop_Stmt") {
             LopGen(Expr);
-        } else if (strcmp(Expr->name, "scanf") == 0) {
+        } else if (Expr->name == "scanf") {
             InputGen(Expr);
-        } else if (strcmp(Expr->name, "printf") == 0) {
+        } else if (Expr->name == "printf") {
             OutputGen(Expr);
-        } else if (strcmp(Expr->name, "break") == 0) {
+        } else if (Expr->name == "break") {
             BreakGen(Expr);
-        } else if (strcmp(Expr->name, "continue") == 0) {
+        } else if (Expr->name == "continue") {
             ContGen(Expr);
-        } else if (strcmp(Expr->name, "return") == 0) {
+        } else if (Expr->name == "return") {
             RetGen(Expr);
         } else {
             CallGen(Expr);
@@ -451,7 +451,7 @@ namespace gen {
 
         std::vector<llvm::Type *> TypeVector;
         if (FunVarList->child_num != 1 || !(FunVarList->children->at(0)->ntype == Type::tydf
-            && strcmp(FunVarList->children->at(0)->name, "void") == 0)) {
+            && FunVarList->children->at(0)->name == "void")) {
             // not void parameter
             for (auto* FunVar : *(FunVarList->children)) {
                 auto Type = FunVar->children->at(0)->dtype;
@@ -465,7 +465,7 @@ namespace gen {
 
         llvm::FunctionType *FT = llvm::FunctionType::get(FunType, TypeVector, false);
         llvm::Function *Func;
-        if (strcmp(FunDefNode->name, "_main") == 0) {
+        if (FunDefNode->name == "_main") {
             Func = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, "main", &llvmModule);
         } else {
             Func = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, std::string(FunDefNode->name), &llvmModule);
@@ -477,11 +477,11 @@ namespace gen {
 
         auto VarIter = FunVarList->children->begin();
         for (auto &Arg : Func->args()) {
-            auto *name = (*VarIter)->name;
+            auto name = (*VarIter)->name;
             auto type = (*VarIter)->children->at(0)->dtype;
             CreateLocalVariable(name, type);
-            Arg.setName(std::string(name));
-            irBuilder.CreateStore(&Arg, NamedValues[std::string(name)]->value);
+            Arg.setName(name);
+            irBuilder.CreateStore(&Arg, NamedValues[name]->value);
             ++VarIter;
         }
 
