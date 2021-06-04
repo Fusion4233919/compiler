@@ -73,3 +73,11 @@ Makefile
 
 # MacOS
 .DS_Store
+
+# IDEA
+.idea
+Testing/
+*.cbp
+
+# Misc
+mhl*
