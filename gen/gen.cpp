@@ -304,6 +304,36 @@ namespace gen {
     }
 
     static void InputGen(AST *Expr) {
+        auto *FT = llvm::FunctionType::get(llvm::IntegerType::getInt32Ty(llvmContext),
+                                           { llvm::Type::getInt8PtrTy(llvmContext) },
+                                           true);
+        auto *ScanfFunc = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, "scanf", &llvmModule);
+        ScanfFunc->setCallingConv(llvm::CallingConv::C);
+
+        std::vector<llvm::Value *> ArgValues;
+        auto FormatStr = std::string(Expr->children->at(0)->dvalue.str);
+        FormatStr = FormatStr.substr(1, FormatStr.length() - 2);
+        auto *FormatStrInst = irBuilder.CreateGlobalStringPtr(FormatStr, "scanf_format_str");
+        ArgValues.push_back(FormatStrInst);
+
+        if (Expr->child_num > 1) {
+            auto *ArgList = Expr->children->at(1);
+
+            for (auto *Arg : *(ArgList->children)) {
+                if (Arg->ntype == Type::cconst && Arg->dtype == DataType::integer) {
+                    ArgValues.push_back(llvm::ConstantInt::get(
+                            GetLLVMType(DataType::integer),
+                            Arg->dvalue.integer));
+                } else if (Arg->ntype == Type::lvalue) {
+                    auto *LValue = GetLValue(Arg);
+                    ArgValues.push_back(LValue->value);
+                } else {
+                    // TODO string?
+                }
+            }
+        }
+
+        irBuilder.CreateCall(ScanfFunc, ArgValues, "c_scanf");
 
     }
 
