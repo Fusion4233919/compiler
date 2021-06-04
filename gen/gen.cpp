@@ -203,16 +203,93 @@ namespace gen {
         return new ValueWrapper(Acc, DataType::integer);
     }
 
-    static void CondExprGen(AST *Expr) {
+    static ValueWrapper *CondExprGen(AST *Expr);
 
+    static ValueWrapper *CondFactorGen(AST *Factor) {
+        if (Factor->ntype == Type::expr && strcmp(Factor->name, "Cond_Exp") == 0) {
+            return CondExprGen(Factor);
+        } else {
+            auto *LHS = OpExprGen(Factor->children->at(0));
+            auto *CondOp = Factor->children->at(1);
+            auto *RHS = OpExprGen(Factor->children->at(2));
+
+            switch (CondOp->op) {
+                case Operator::EQ:
+                    return new ValueWrapper(irBuilder.CreateICmpEQ(LHS->value, RHS->value), DataType::integer);
+                case Operator::GE:
+                    return new ValueWrapper(irBuilder.CreateICmpSGE(LHS->value, RHS->value), DataType::integer);
+                case Operator::LE:
+                    return new ValueWrapper(irBuilder.CreateICmpSLE(LHS->value, RHS->value), DataType::integer);
+                case Operator::NE:
+                    return new ValueWrapper(irBuilder.CreateICmpNE(LHS->value, RHS->value), DataType::integer);
+                case Operator::LT:
+                    return new ValueWrapper(irBuilder.CreateICmpSLT(LHS->value, RHS->value), DataType::integer);
+                case Operator::GT:
+                    return new ValueWrapper(irBuilder.CreateICmpSGT(LHS->value, RHS->value), DataType::integer);
+            }
+        }
     }
 
-    static void IfGen(AST *Expr) {
+    static ValueWrapper *CondTermGen(AST *Term) {
+        auto ChildIter = Term->children->begin();
+        llvm::Value *Acc = CondFactorGen(*ChildIter)->value;
+        ++ChildIter;
+        while (ChildIter != Term->children->end()) {
+            ++ChildIter;
+            Acc = irBuilder.CreateAnd(Acc, CondFactorGen(*ChildIter)->value);
+            ++ChildIter;
+        }
+        return new ValueWrapper(Acc, DataType::integer);
+    }
 
+    static ValueWrapper *CondExprGen(AST *Expr) {
+        auto ChildIter = Expr->children->begin();
+        llvm::Value *Acc = CondTermGen(*ChildIter)->value;
+        ++ChildIter;
+        while (ChildIter != Expr->children->end()) {
+            ++ChildIter;
+            Acc = irBuilder.CreateOr(Acc, CondTermGen(*ChildIter)->value);
+            ++ChildIter;
+        }
+        return new ValueWrapper(Acc, DataType::integer);
+    }
+
+    static void ExprListGen(AST *ExprList);
+
+    static void IfGen(AST *Expr) {
+        auto *CondExpr = Expr->children->at(0);
+        auto *ExprList = Expr->children->at(1);
+
+        auto *CondResult = CondExprGen(CondExpr);
+        auto *CurrentFunc = irBuilder.GetInsertBlock()->getParent();
+        llvm::BasicBlock *Then = llvm::BasicBlock::Create(llvmContext, "then", CurrentFunc);
+        llvm::BasicBlock *Merge = llvm::BasicBlock::Create(llvmContext, "merge", CurrentFunc);
+        irBuilder.CreateCondBr(CondResult->value, Then, Merge);
+
+        irBuilder.SetInsertPoint(Then);
+        ExprListGen(ExprList);
+        irBuilder.CreateBr(Merge);
+
+        irBuilder.SetInsertPoint(Merge);
     }
 
     static void LopGen(AST *Expr) {
+        auto *CondExpr = Expr->children->at(0);
+        auto *ExprList = Expr->children->at(1);
 
+        auto *CurrentFunc = irBuilder.GetInsertBlock()->getParent();
+        llvm::BasicBlock *LoopBB = llvm::BasicBlock::Create(llvmContext, "loop", CurrentFunc);
+        llvm::BasicBlock *CondBB = llvm::BasicBlock::Create(llvmContext, "cond", CurrentFunc);
+        llvm::BasicBlock *Merge = llvm::BasicBlock::Create(llvmContext, "merge", CurrentFunc);
+        irBuilder.CreateBr(CondBB);
+
+        irBuilder.SetInsertPoint(LoopBB);
+        ExprListGen(ExprList);
+        irBuilder.CreateBr(CondBB);
+        irBuilder.SetInsertPoint(CondBB);
+        auto *CondResult = CondExprGen(CondExpr);
+        irBuilder.CreateCondBr(CondResult->value, LoopBB, Merge);
+        irBuilder.SetInsertPoint(Merge);
     }
 
     static void InputGen(AST *Expr) {
@@ -283,8 +360,8 @@ namespace gen {
         }
     }
 
-    static void ExprListGen(AST *ExpList) {
-        for (auto* Expr : *(ExpList->children)) {
+    static void ExprListGen(AST *ExprList) {
+        for (auto* Expr : *(ExprList->children)) {
             ExprGen(Expr);
         }
     }
