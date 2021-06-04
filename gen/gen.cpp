@@ -18,9 +18,9 @@ namespace gen {
 
     struct FunctionWrapper {
         llvm::Function *func = nullptr;
-        llvm::Type *retType = nullptr;
+        DataType retType = DataType::vvoid;
 
-        FunctionWrapper(llvm::Function *func, llvm::Type* retType) {
+        FunctionWrapper(llvm::Function *func, DataType retType) {
             this->func = func;
             this->retType = retType;
         }
@@ -236,7 +236,25 @@ namespace gen {
     }
 
     static ValueWrapper *CallGen(AST *Expr) {
+        auto *CalleeFunc = NamedFuncs[std::string(Expr->name)];
+        auto *ArgList = Expr->children->at(0);
 
+        std::vector<llvm::Value *> ArgValues;
+        for (auto *Arg : *(ArgList->children)) {
+            if (Arg->ntype == Type::cconst && Arg->dtype == DataType::integer) {
+                ArgValues.push_back(llvm::ConstantInt::get(
+                        GetLLVMType(DataType::integer),
+                        Arg->dvalue.integer));
+            } else if (Arg->ntype == Type::lvalue) {
+                auto *LValue = GetLValue(Arg);
+                auto *Loaded = irBuilder.CreateLoad(LValue->value);
+                ArgValues.push_back(Loaded);
+            } else {
+                // TODO string?
+            }
+        }
+
+        return new ValueWrapper(irBuilder.CreateCall(CalleeFunc->func, ArgValues), CalleeFunc->retType);
     }
 
     static void ExprGen(AST *Expr) {
@@ -300,7 +318,7 @@ namespace gen {
         } else {
             Func = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, std::string(FunDefNode->name), &llvmModule);
         }
-        NamedFuncs[FunDefNode->name] = new FunctionWrapper(Func, FunType);
+        NamedFuncs[std::string(FunDefNode->name)] = new FunctionWrapper(Func, FunDataType);
 
         llvm::BasicBlock *BB = llvm::BasicBlock::Create(llvmContext, "entry", Func);
         irBuilder.SetInsertPoint(BB);
@@ -319,11 +337,11 @@ namespace gen {
 
         ExprListGen(ExpList);
 
-        llvm::verifyFunction(*Func);
-
         if (FunDataType == DataType::vvoid) {
             irBuilder.CreateRetVoid();
         }
+
+        llvm::verifyFunction(*Func);
     }
 
     void ProgramGen(AST *node) {
