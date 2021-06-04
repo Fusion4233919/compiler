@@ -9,6 +9,11 @@ namespace gen {
             this->value = value;
             this->type = type;
         }
+
+        ValueWrapper(llvm::Value *value, DataType type, bool isRet) {
+            this->value = value;
+            this->type = type;
+        }
     };
 
     struct FunctionWrapper {
@@ -109,8 +114,151 @@ namespace gen {
         }
     }
 
-    static llvm::Value *ExpListGen(AST *ExpList) {
+    static ValueWrapper *OpExprGen(AST *Expr);
 
+    static void AssignGen(AST *Expr) {
+        auto *LValueNode = Expr->children->at(0);
+        auto *OpExpr = Expr->children->at(1);
+
+        ValueWrapper *LValue = nullptr;
+        if (LValueNode->child_num == 0) {
+            LValue = NamedValues[LValueNode->name];
+        } else {
+            // TODO array
+        }
+        auto *OpResult = OpExprGen(OpExpr);
+        irBuilder.CreateStore(OpResult->value, LValue->value);
+    }
+
+    static ValueWrapper *OpFactorGen(AST *Factor) {
+        if (Factor->ntype == Type::expr && strcmp(Factor->name, "Op_Exp") == 0) {
+            return OpExprGen(Factor);
+        } else if (Factor->ntype == Type::cconst && Factor->dtype == DataType::integer) {
+            return new ValueWrapper(llvm::ConstantInt::get(
+                    GetLLVMType(DataType::integer),
+                    Factor->dvalue.integer),DataType::integer);
+        } else {
+            // ...
+        }
+    }
+
+    static ValueWrapper *OpTermGen(AST *Term) {
+        auto ChildIter = Term->children->begin();
+        llvm::Value *Acc = OpFactorGen(*ChildIter)->value;
+        ++ChildIter;
+        while (ChildIter != Term->children->end()) {
+            switch ((*ChildIter)->op) {
+                case Operator::mul:
+                    ++ChildIter;
+                    Acc = irBuilder.CreateMul(Acc, OpFactorGen(*ChildIter)->value);
+                    ++ChildIter;
+                    break;
+                case Operator::ddi:
+                    ++ChildIter;
+                    Acc = irBuilder.CreateSDiv(Acc, OpFactorGen(*ChildIter)->value);
+                    ++ChildIter;
+                    break;
+                case Operator::mod:
+                    ++ChildIter;
+                    Acc = irBuilder.CreateSRem(Acc, OpFactorGen(*ChildIter)->value);
+                    ++ChildIter;
+                    break;
+                default:
+                    break;
+            }
+        }
+        return new ValueWrapper(Acc, DataType::integer);
+    }
+
+    static ValueWrapper *OpExprGen(AST *Expr) {
+        auto ChildIter = Expr->children->begin();
+        llvm::Value *Acc = OpTermGen(*ChildIter)->value;
+        ++ChildIter;
+        while (ChildIter != Expr->children->end()) {
+            switch ((*ChildIter)->op) {
+                case Operator::add:
+                    ++ChildIter;
+                    Acc = irBuilder.CreateAdd(Acc, OpTermGen(*ChildIter)->value);
+                    ++ChildIter;
+                    break;
+                case Operator::min:
+                    ++ChildIter;
+                    Acc = irBuilder.CreateSub(Acc, OpTermGen(*ChildIter)->value);
+                    ++ChildIter;
+                    break;
+                default:
+                    break;
+            }
+        }
+        return new ValueWrapper(Acc, DataType::integer);
+    }
+
+    static void CondExprGen(AST *Expr) {
+
+    }
+
+    static void IfGen(AST *Expr) {
+
+    }
+
+    static void LopGen(AST *Expr) {
+
+    }
+
+    static void InputGen(AST *Expr) {
+
+    }
+
+    static void OutputGen(AST *Expr) {
+
+    }
+
+    static void BreakGen(AST *Expr) {
+
+    }
+
+    static void ContGen(AST *Expr) {
+
+    }
+
+    static void RetGen(AST *Expr) {
+
+    }
+
+    static void CallGen(AST *Expr) {
+
+    }
+
+    static void ExprGen(AST *Expr) {
+        if (strcmp(Expr->name, "As_Exp") == 0) {
+            AssignGen(Expr);
+        } else if (strcmp(Expr->name, "Op_Exp") == 0) {
+            OpExprGen(Expr);
+        } else if (strcmp(Expr->name, "Cond_Exp") == 0) {
+            CondExprGen(Expr);
+        } else if (strcmp(Expr->name, "If_Stmt") == 0) {
+            IfGen(Expr);
+        } else if (strcmp(Expr->name, "Lop_Stmt") == 0) {
+            LopGen(Expr);
+        } else if (strcmp(Expr->name, "scanf") == 0) {
+            InputGen(Expr);
+        } else if (strcmp(Expr->name, "printf") == 0) {
+            OutputGen(Expr);
+        } else if (strcmp(Expr->name, "break") == 0) {
+            BreakGen(Expr);
+        } else if (strcmp(Expr->name, "continue") == 0) {
+            ContGen(Expr);
+        } else if (strcmp(Expr->name, "return") == 0) {
+            RetGen(Expr);
+        } else {
+            CallGen(Expr);
+        }
+    }
+
+    static void ExprListGen(AST *ExpList) {
+        for (auto* Expr : *(ExpList->children)) {
+            ExprGen(Expr);
+        }
     }
 
     static void FuncGen(AST *FunDefNode) {
@@ -159,14 +307,12 @@ namespace gen {
 
         LocalVarDeclListGen(DefList);
 
-        auto* RetValue = ExpListGen(ExpList);
+        ExprListGen(ExpList);
 
         llvm::verifyFunction(*Func);
 
         if (FunDataType == DataType::vvoid) {
             irBuilder.CreateRetVoid();
-        } else {
-            irBuilder.CreateRet(RetValue);
         }
     }
 
