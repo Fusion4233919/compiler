@@ -80,5 +80,4 @@ Testing/
 *.cbp
 
 # Misc
-mhl.cmm
-mhl.ll
+mhl*
