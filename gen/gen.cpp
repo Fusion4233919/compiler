@@ -304,11 +304,7 @@ namespace gen {
     }
 
     static void InputGen(AST *Expr) {
-        auto *FT = llvm::FunctionType::get(llvm::IntegerType::getInt32Ty(llvmContext),
-                                           { llvm::Type::getInt8PtrTy(llvmContext) },
-                                           true);
-        auto *ScanfFunc = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, "scanf", &llvmModule);
-        ScanfFunc->setCallingConv(llvm::CallingConv::C);
+        auto *ScanfFunc = NamedFuncs["scanf"]->func;
 
         std::vector<llvm::Value *> ArgValues;
         auto FormatStr = std::string(Expr->children->at(0)->dvalue.str);
@@ -338,11 +334,7 @@ namespace gen {
     }
 
     static void OutputGen(AST *Expr) {
-        auto *FT = llvm::FunctionType::get(llvm::IntegerType::getInt32Ty(llvmContext),
-                                           { llvm::Type::getInt8PtrTy(llvmContext) },
-                                           true);
-        auto *PrintfFunc = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, "printf", &llvmModule);
-        PrintfFunc->setCallingConv(llvm::CallingConv::C);
+        auto *PrintfFunc = NamedFuncs["printf"]->func;
 
         std::vector<llvm::Value *> ArgValues;
         auto FormatStr = std::string(Expr->children->at(0)->dvalue.str);
@@ -496,9 +488,27 @@ namespace gen {
         llvm::verifyFunction(*Func);
     }
 
+    static void InputAndOutputGen() {
+        auto *FTScanf = llvm::FunctionType::get(llvm::IntegerType::getInt32Ty(llvmContext),
+                                           { llvm::Type::getInt8PtrTy(llvmContext) },
+                                           true);
+        auto *ScanfFunc = llvm::Function::Create(FTScanf, llvm::Function::ExternalLinkage, "scanf", &llvmModule);
+        ScanfFunc->setCallingConv(llvm::CallingConv::C);
+        NamedFuncs["scanf"] = new FunctionWrapper(ScanfFunc, DataType::integer);
+
+        auto *FTPrintf = llvm::FunctionType::get(llvm::IntegerType::getInt32Ty(llvmContext),
+                                           { llvm::Type::getInt8PtrTy(llvmContext) },
+                                           true);
+        auto *PrintfFunc = llvm::Function::Create(FTPrintf, llvm::Function::ExternalLinkage, "printf", &llvmModule);
+        PrintfFunc->setCallingConv(llvm::CallingConv::C);
+        NamedFuncs["printf"] = new FunctionWrapper(PrintfFunc, DataType::integer);
+    }
+
     void ProgramGen(AST *node) {
         AST *DefList = node->children->at(0);
         AST *FunDefList = node->children->at(1);
+
+        InputAndOutputGen();
 
         GlobalVarDeclListGen(DefList);
 
