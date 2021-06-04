@@ -1,12 +1,15 @@
 #include<bits/stdc++.h>
 using namespace std ;
-#define MAXN 1001
+#define MAXN 201
 
-string name[MAXN] ;
+// 全用[0]来存长度
+char name[MAXN][MAXN] ;
+//	  id    id_string
 int credit[MAXN] ;
 int score[MAXN] ;
 int tried[MAXN] ;
-vector<vector<string>> pre[MAXN] ;
+char pre[MAXN][MAXN][MAXN][MAXN] ;
+//       id    set   id   id_string
 
 int sum_score = 0;
 int sum_credit_tried = 0;
@@ -22,8 +25,10 @@ int main() {
 		if ( tmp == '\n' || tmp == '\r')
 			break ;
 
+		name[cnt][0] = 0 ;
 		while ( tmp != '|' ) {
-			name[cnt] = name[cnt] + tmp ;
+			name[cnt][0] = name[cnt][0] + 1 ;
+			name[cnt][ name[cnt][0] ] = tmp ;
 			scanf("%c", &tmp) ;
 		}
 
@@ -36,20 +41,39 @@ int main() {
 		scanf("%c", &tmp) ;
 
 		while ( tmp != '|') {
-			vector<string> cur_pre_set ;
+			char cur_pre_set[MAXN][MAXN] ;
+			//		 id	id_string
+			cur_pre_set[0][0] = 0 ;
+
 			while ( tmp != ';' && tmp != '|') {
-				string cur_pre = "" ;
+				char cur_pre[MAXN] ;
+				cur_pre[0] = 0 ;
+
 				while ( tmp != ',' && tmp != ';' && tmp != '|') {
-					cur_pre = cur_pre + tmp ;
+					cur_pre[0] = cur_pre[0] + 1 ;
+					cur_pre[cur_pre[0]] = tmp ;
 					scanf("%c", &tmp) ;
 					// puts("doing ','") ;
 				}
-				cur_pre_set.push_back(cur_pre) ;
+				cur_pre_set[0][0] = cur_pre_set[0][0] + 1 ;
+				cur_pre_set[ cur_pre_set[0][0] ][0] = cur_pre[0] ;
+				for (int i = 1; i <= cur_pre[0]; ++i)
+					cur_pre_set[ cur_pre_set[0][0] ][i] = cur_pre[i] ;
 				if (tmp == ',')
 					scanf("%c", &tmp) ;
 				// puts("doing ';'") ;
 			}
-			pre[cnt].push_back(cur_pre_set) ;
+			pre[cnt][0][0][0] = pre[cnt][0][0][0] + 1 ;
+			pre[cnt][ pre[cnt][0][0][0] ][0][0] = cur_pre_set[0][0] ;
+
+			for (int i = 1; i <= cur_pre_set[0][0]; ++i ) {
+				pre[cnt][ pre[cnt][0][0][0] ][i][0] = cur_pre_set[i][0] ;
+				for (int j = 1; j <= cur_pre_set[i][0]; ++j ) {
+					pre[cnt][ pre[cnt][0][0][0] ][i][j] = cur_pre_set[i][j] ;
+				}
+			}
+			// pre[cnt].push_back(cur_pre_set) ;
+			//
 			if (tmp == ';')
 				scanf("%c", &tmp) ;
 			// puts("doing '|'") ;
@@ -130,6 +154,7 @@ int main() {
 	printf("Hours Completed: %d\n", sum_credit_get) ;
 	printf("Credits Remaining: %d\n\n", gratuate_credit - sum_credit_get) ;
 
+
 	printf("Possible Courses to Take Next\n") ;
 	if (gratuate_credit == sum_credit_get ) {
 		printf("  None - Congratulations!\n") ;
@@ -137,19 +162,37 @@ int main() {
 	} else {
 		for ( int i = 1; i <= cnt; ++i ) {
 			if (!tried[i]) {
-				//cout << "checking.. " << name[i] << endl ;
+				// cout << "checking.. " << &name[i][1] << endl ;
+
 				int tag = 0 ;
-				if (pre[i].size() == 0)
+				if (pre[i][0][0][0] == 0)
 					tag = 1 ;
-				for ( int j = 0; j < pre[i].size(); ++j ) {
+				for ( int j = 1; j <= pre[i][0][0][0]; ++j ) {
+					// cout << "n = " << int(pre[i][j][0][0]) << endl ;
 					tag = 1 ;
-					for ( int k = 0; k < pre[i][j].size(); ++k ) {
-						string cur = pre[i][j][k] ;
-						//cout << '\t' << cur << endl ;
+					for ( int k = 1; k <= pre[i][j][0][0]; ++k ) {
+						char cur[MAXN] ;
+						cur[0] = pre[i][j][k][0] ;
+						for (int ii = 1; ii <= pre[i][j][k][0]; ++ii )
+							cur[ii] = pre[i][j][k][ii] ;
+						// cout << '\t' << &cur[1] << endl ;
 						int found = 0 ;
 						for ( int l = 1; l <= cnt; ++l ) {
-							if (name[l] == cur) {
-								//cout << "\t\t" << name[l] << endl ;
+							int tag_cur = 1 ;
+							if (name[l][0] != cur[0] ) {
+								tag_cur = 0 ;
+							} else {
+								for (int ii = 1; ii <= cur[0]; ++ii ) {
+									if ( name[l][ii] != cur[ii] ) {
+										tag_cur = 0 ;
+										break ;
+									}
+								}
+							}
+							if (tag_cur) {
+								// cout << &(name[l][1]) << endl ;
+								// cout << &(cur[1]) << endl<<endl ;
+								//
 								found = 1 ;
 								if (score[l] == 0)
 									tag = 0 ;
@@ -164,13 +207,15 @@ int main() {
 				}
 				if ( tag == 1 ) {
 					printf("  ") ;
-					cout << name[i] << endl ;
+					for ( int hhh = 1; hhh <= name[i][0]; ++hhh)
+						printf("%c", name[i][hhh]) ;
+					printf("\n") ;
+					// cout << name[i] << endl ;
 				}
 				//getchar() ;
 			}
 		}
 	}
-
 
 	return 0 ;
 }
