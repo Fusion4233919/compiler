@@ -136,6 +136,7 @@ Output_Exp : OUTPUT '(' String ',' List ')' {$$=new AST(Type::expr, "printf"); $
 
 As_Exp : LValue '=' Op_Exp {$$=new AST(Type::expr, "As_Exp"); $$->Insert($1); $$->Insert($3);}
 //       | LValue '=' String {$$=new AST(Type::expr, "As_Exp"); $$->Insert($1); $$->Insert(new AST($3));}
+
        ;
 
 Op_Exp : Op_Exp Add_op Op_Term {$$=$1; $$->Insert($2); $$->Insert($3);}
