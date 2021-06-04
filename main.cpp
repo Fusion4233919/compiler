@@ -50,5 +50,6 @@ int main(int argc, const char *argv[])
     head->BuildTable(NULL);
     showTable();
     head->CheckTable(NULL);
+    gen::ProgramGen(head);
     return 0;
 }
