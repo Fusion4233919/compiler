@@ -9,12 +9,12 @@ digit           = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
 digit_with_zero = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
 ID              = Letter, {Letter}
 Fun_ID          = "_", Letter, {Letter}
-Number          = "0" | digit, {digit_with_zero}
+Number          = ["-"], ("0" | digit, {digit_with_zero} | "'", (Letter | "\", "n" | "\", "r" | "\", "t"), "'")
 String          = double_quote, {Letter}, double_quote
 LValue          = ID, {"[", (ID | Number), "]"}
-Fun_Value       = Fun_ID, "(", [(LValue | Number | String), [{",", (LValue | Number | String)}]], ")"
+Fun_Value       = Fun_ID, "(", [(LValue | Number), [{",", (LValue | Number)}]], ")"
 Exp             = As_Exp, ";" | Op_Exp, ";" | Cond_Exp, ";" | If_Stmt | Lop_Stmt | "break", ";" | "continue", ";" | "return", [Op_Exp], ";"
-As_Exp          = LValue, "=", (Op_Exp | String)
+As_Exp          = LValue, "=", Op_Exp
 Cond_Exp        = Cond_Term, [{"||", Cond_Term}]
 Cond_Term       = Cond_Factor, [{"&&", Cond_Factor}]
 Cond_Factor     = "(", Cond_Exp, ")" | Op_Exp, ("<" | ">" | "==" | "!=" | "<=" | ">="), Op_Exp

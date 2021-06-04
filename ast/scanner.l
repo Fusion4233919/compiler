@@ -1,8 +1,8 @@
 /************************************
 /*    Name:        scanner.l 
-/*    Version:     v1.6
+/*    Version:     v1.7
 /*    Modefied by: fusion
-/*                 2021-6-2 15:29
+/*                 2021-6-4 12:23
 /************************************/
 
 %{
@@ -54,8 +54,8 @@
 "continue"              return CONTINUE;
 "return"                return RETURN;
 
-"int"                   return INT;     /* type */
-"string"                return STRING;
+"int"                   return INT;     /* type 
+"string"                return STRING;  */
 "void"                  return VOID;
 
 "_input"                return INPUT;

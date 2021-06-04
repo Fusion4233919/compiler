@@ -1,8 +1,8 @@
 /************************************
     Name:        AST.cpp 
-    Version:     v2.2
+    Version:     v2.3
     Modefied by: fusion
-                 2021-6-2 22:13
+                 2021-6-4 12:23
 ************************************/
 
 #include "AST.h"
@@ -281,7 +281,7 @@ void AST::CheckTable(Fun_attr *current_fun)
                 this->children->at(_)->CheckTable(current_fun);
     }
     break;
-    case Type::exp:
+    case Type::expr:
     {
         if (this->name[0] == '_')
         {

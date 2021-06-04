@@ -1,8 +1,8 @@
 /************************************
     Name:        AST.h 
-    Version:     v2.2
+    Version:     v2.3
     Modefied by: fusion
-                 2021-6-2 22:13
+                 2021-6-4 12:23
 ************************************/
 
 #ifndef AST_H
@@ -21,7 +21,7 @@ typedef enum Type
     list,
     opr,
     tydf,
-    exp,
+    expr,
     lvalue
 } Type;
 
