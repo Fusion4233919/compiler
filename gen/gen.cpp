@@ -273,6 +273,9 @@ namespace gen {
         irBuilder.SetInsertPoint(Merge);
     }
 
+    static llvm::BasicBlock *CurrentMerge = nullptr;
+    static llvm::BasicBlock *CurrentCond = nullptr;
+
     static void LopGen(AST *Expr) {
         auto *CondExpr = Expr->children->at(0);
         auto *ExprList = Expr->children->at(1);
@@ -282,14 +285,22 @@ namespace gen {
         llvm::BasicBlock *CondBB = llvm::BasicBlock::Create(llvmContext, "cond", CurrentFunc);
         llvm::BasicBlock *Merge = llvm::BasicBlock::Create(llvmContext, "merge", CurrentFunc);
         irBuilder.CreateBr(CondBB);
+        auto *PrevMerge = CurrentMerge;
+        auto *PrevCond = CurrentCond;
+        CurrentMerge = Merge;
+        CurrentCond = CondBB;
 
         irBuilder.SetInsertPoint(LoopBB);
         ExprListGen(ExprList);
         irBuilder.CreateBr(CondBB);
+
         irBuilder.SetInsertPoint(CondBB);
         auto *CondResult = CondExprGen(CondExpr);
         irBuilder.CreateCondBr(CondResult->value, LoopBB, Merge);
+
         irBuilder.SetInsertPoint(Merge);
+        CurrentMerge = PrevMerge;
+        CurrentCond = PrevCond;
     }
 
     static void InputGen(AST *Expr) {
@@ -301,15 +312,19 @@ namespace gen {
     }
 
     static void BreakGen(AST *Expr) {
-
+        irBuilder.CreateBr(CurrentMerge);
     }
 
     static void ContGen(AST *Expr) {
-
+        irBuilder.CreateBr(CurrentCond);
     }
 
     static void RetGen(AST *Expr) {
-
+        if (Expr->child_num == 0) {
+            irBuilder.CreateRetVoid();
+        } else {
+            irBuilder.CreateRet(OpExprGen(Expr->children->at(0))->value);
+        }
     }
 
     static ValueWrapper *CallGen(AST *Expr) {
