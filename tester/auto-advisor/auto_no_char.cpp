@@ -3,12 +3,12 @@ using namespace std ;
 #define MAXN 101
 
 // 全用[0]来存长度
-char name[MAXN][MAXN] ;
+int name[MAXN][MAXN] ;
 //	  id    id_string
 int credit[MAXN] ;
 int score[MAXN] ;
 int tried[MAXN] ;
-char pre[MAXN][MAXN][MAXN][MAXN] ;
+int pre[MAXN][MAXN][MAXN][MAXN] ;
 //       id    set   id   id_string
 
 int sum_score = 0;
@@ -17,7 +17,7 @@ int sum_credit_get = 0;
 int gratuate_credit = 0 ;
 
 int main() {
-	char tmp ;
+	int tmp = 0 ;
 	int cnt = 1 ;
 	scanf("%c", &tmp) ;
 	while(1) {
@@ -41,12 +41,12 @@ int main() {
 		scanf("%c", &tmp) ;
 
 		while ( tmp != '|') {
-			char cur_pre_set[MAXN][MAXN] ;
+			int cur_pre_set[MAXN][MAXN] ;
 			//		 id	id_string
 			cur_pre_set[0][0] = 0 ;
 
 			while ( tmp != ';' && tmp != '|') {
-				char cur_pre[MAXN] ;
+				int cur_pre[MAXN] ;
 				cur_pre[0] = 0 ;
 
 				while ( tmp != ',' && tmp != ';' && tmp != '|') {
@@ -87,31 +87,31 @@ int main() {
 //		if ( tmp == '\n' || tmp == '\r' ) {
 //			tried[cnt] = 0 ;
 //		} else {
-			switch(tmp) {
-				case 'A' : 
-					score[cnt] = 4 ;
-					scanf("%c", &tmp) ;
-					break ;
-				case'B' :
-					score[cnt] = 3 ;
-					scanf("%c", &tmp) ;
-					break ;
-				case'C' :
-					score[cnt] = 2 ;
-					scanf("%c", &tmp) ;
-					break ;
-				case'D' :
-					score[cnt] = 1 ;
-					scanf("%c", &tmp) ;
-					break ;
-				case'F' :
-					score[cnt] = 0 ;
-					scanf("%c", &tmp) ;
-					break ;
-				default:
-					tried[cnt] = 0 ;
-					score[cnt] = 0 ;
-			}
+		switch(tmp) {
+			case 'A' : 
+				score[cnt] = 4 ;
+				scanf("%c", &tmp) ;
+				break ;
+			case'B' :
+				score[cnt] = 3 ;
+				scanf("%c", &tmp) ;
+				break ;
+			case'C' :
+				score[cnt] = 2 ;
+				scanf("%c", &tmp) ;
+				break ;
+			case'D' :
+				score[cnt] = 1 ;
+				scanf("%c", &tmp) ;
+				break ;
+			case'F' :
+				score[cnt] = 0 ;
+				scanf("%c", &tmp) ;
+				break ;
+			default:
+				tried[cnt] = 0 ;
+				score[cnt] = 0 ;
+		}
 //		}
 
 		gratuate_credit += credit[cnt] ;
@@ -171,7 +171,7 @@ int main() {
 					// cout << "n = " << int(pre[i][j][0][0]) << endl ;
 					tag = 1 ;
 					for ( int k = 1; k <= pre[i][j][0][0]; ++k ) {
-						char cur[MAXN] ;
+						int cur[MAXN] ;
 						cur[0] = pre[i][j][k][0] ;
 						for (int ii = 1; ii <= pre[i][j][k][0]; ++ii )
 							cur[ii] = pre[i][j][k][ii] ;
@@ -212,7 +212,6 @@ int main() {
 					printf("\n") ;
 					// cout << name[i] << endl ;
 				}
-				//getchar() ;
 			}
 		}
 	}

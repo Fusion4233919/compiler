@@ -1,30 +1,46 @@
-string Name[200] ;
-int credit[200] ;
-int score[200] ;
-int tried[200] ;
+int name[101][101] ;
+int credit[101] ;
+int score[101] ;
+int tried[101] ;
 
 int SumScore ;
 int SumCreditTried ;
 int SumCreditGet ;
 int GratuateCredit ;
 
-int _main(void)
+function void _main(void)
 declare
 	int tmp ;
 	int cnt ;
+
+	int tag ;
+	int found ;
+	int tag_cur ;
+
+	int i, j, k, l, ii, hhh ;
+
+	int cur_pre_set[101][101] ;
+	int cur_pre[101] ;
+	int cur[101] ;
+	/*		 id	id_string  */
 do
-	_input("%c", &tmp) £»
-	cnt = 1 ;
 	SumScore = 0 ;
 	SumCreditTried = 0 ;
 	SumCreditGet = 0 ;
 	GratuateCredit = 0 ;
+	
+	tmp = 0 ;
+	cnt = 1 ;
+	_input("%c", &tmp) £»
+
 	loop(1 == 1) do
 		if (tmp == '\n' || tmp == '\r' ) do
 			break ;
 		done
+		name[cnt][0] = 0 ;
 		loop (tmp != '|' ) do
-			name[cnt] = name[cnt] + tmp ;
+			name[cnt][0] = name[cnt][0] + 1 ;
+			name[cnt][ name[cnt][0] ] = tmp ;
 			_input("%c", &tmp) ;
 		done
 
@@ -33,9 +49,190 @@ do
 		_input("%c", &tmp) ;
 		_input("%c", &tmp) ;
 
-		loop (tmp != '|' ) {
+		loop (tmp != '|' ) do
+			cur_pre_set[0][0] = 0 ;
 
-		}
+			loop ( tmp != ';' && tmp != '|') do
+				cur_pre[0] = 0 ;
+			
+				while ( tmp != ',' && tmp != ';' && tmp != '|') do
+					cur_pre[0] = cur_pre[0] + 1 ;
+					cur_pre[cur_pre[0]] = tmp ;
+					_input("%c", &tmp) ;
+				done
+				cur_pre_set[0][0] = cur_pre_set[0][0] + 1 ;
+				cur_pre_set[ cur_pre_set[0][0] ][0] = cur_pre[0] ;
+
+				i = 1 ;
+				loop (i <= cur_pre[0]) do
+					cur_pre_set[ cur_pre_set[0][0] ][i] = cur_pre[i] ;
+					i = i + 1 ;
+				done
+				if (tmp == ',') do
+					_input("%c", &tmp) ;
+				done
+			done
+
+			pre[cnt][0][0][0] = pre[cnt][0][0][0] + 1 ;
+			pre[cnt][ pre[cnt][0][0][0] ][0][0] = cur_pre_set[0][0] ;
+
+			i = 1 ;
+			loop (i <= cur_pre_set[0][0] ) do
+				pre[cnt][ pre[cnt][0][0][0] ][i][0] = cur_pre_set[i][0] ;
+				j = 1 ;
+				loop (j <= cur_pre_set[i][0] ) do
+					pre[cnt][ pre[cnt][0][0][0] ][i][j] = cur_pre_set[i][j] ;
+					j = j + 1 ;
+				done
+				i = i + 1 ;
+			done
+
+			if (tmp == ';') do
+				_input("%c", &tmp) ;
+			done
+		done
+
+		_input("%c", &tmp) ;
+		tried[cnt] = 1 ;
+
+		if (tmp == 'A') do
+			score[cnt] = 4 ;
+		done
+		if (tmp == 'B') do
+			score[cnt] = 3 ;
+		done
+		if (tmp == 'C') do
+			score[cnt] = 2 ;
+		done
+		if (tmp == 'D') do
+			score[cnt] = 1 ;
+		done
+		if (tmp == 'F') do
+			score[cnt] = 0 ;
+		done
+		if (tmp != 'A' && tmp != 'B' && tmp != 'C' && tmp !='D' && tmp != 'E' && tmp != 'F' ) do
+			tried[cnt] = 0 ;
+			score[cnt] = 0 ;
+		done
+
+		if (tmp == 'A' || tmp == 'B' || tmp == 'C' || tmp =='D' || tmp == 'E' || tmp == 'F' ) do
+			_input("%c", &tmp) ;
+		done
+
+		GratuateCredit += credit[cnt] ;
+		if (tried[cnt]) do
+			SumCreditTried = SumCreditTried  + credit[cnt] ;
+			SumScore = SumScore + score[cnt] * credit[cnt];
+			if (score[cnt] > 0) do
+				SumCreditGet = SumCreditGet + credit[cnt] ;
+			done
+		done
+
+		_input("%c", &tmp) ;
+		++cnt ;
 
 	done
+
+	cnt = cnt - 1 ;
+
+	if ( sum_credit_tried == 0 ) do
+		_output("GPA: 0.0\n") ;
+	done
+
+	if ( sum_credit_tried != 0 ) do
+		_output("GPA: %.1f\n", 1.0 * sum_score / sum_credit_tried) ;
+	done
+	_output("Hours Attempted: %d\n", sum_credit_tried) ;
+	_output("Hours Completed: %d\n", sum_credit_get) ;
+	_output("Credits Remaining: %d\n\n", gratuate_credit - sum_credit_get) ;
+	_output("Possible Courses to Take Next\n") ;
+
+	if (gratuate_credit == sum_credit_get ) do
+		_output("  None - Congratulations!\n") ;
+		return 0 ;
+	done
+	if (gratuate_credit != sum_credit_get ) do
+		i = 1 ;
+		loop ( i <= cnt ) do
+			if (!tried[i]) do
+				tag = 0 ;
+				if (pre[i][0][0][0] == 0) do
+					tag = 1 ;
+				done
+
+				j = 1 ;
+				loop ( j <= pre[i][0][0][0]; ++j ) do
+					tag = 1 ;
+
+					k = 1 ;
+					loop ( k <= pre[i][j][0][0] ) do
+						cur[0] = pre[i][j][k][0] ;
+
+						ii = 1 ;
+						loop (ii <= pre[i][j][k][0]) do
+							cur[ii] = pre[i][j][k][ii] ;
+							ii = ii + 1 ;
+						done
+
+						found = 0 ;
+						
+						l = 1 ;
+						loop ( l <= cnt ) do
+							tag_cur = 1 ;
+
+							if (name[l][0] != cur[0] ) do
+								tag_cur = 0 ;
+							done
+							
+							if (name[l][0] == cur[0] ) do
+								ii = 1 ;
+								for (ii <= cur[0]) do
+									if ( name[l][ii] != cur[ii] ) do
+										tag_cur = 0 ;
+										break ;
+									done
+									ii = ii + 1 ;
+								done
+							done
+
+							if (tag_cur) do
+								found = 1 ;
+								if (score[l] == 0) do
+									tag = 0 ;
+								done
+								break ;
+							done
+
+							l = l + 1 ;
+						done
+						if (found == 0) do
+							tag = 0 ;
+						done
+
+						k = k + 1 ;
+					done
+					if ( tag == 1 ) do
+						break ;
+					done
+
+					j = j + 1 ;
+				done
+				if ( tag == 1 ) do
+					_output("  ") ;
+
+					hhh = 1 ;
+					for (hhh <= name[i][0]) do
+						_output("%c", name[i][hhh]) ;
+						hhh = hhh + 1 ;
+					done
+					_output("\n") ;
+					// cout << name[i] << endl ;
+				done
+
+			done
+			i = i + 1 ;
+		done
+	
+	done
+
 done
