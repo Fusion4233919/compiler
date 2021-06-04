@@ -160,17 +160,17 @@ namespace gen {
             switch ((*ChildIter)->op) {
                 case Operator::mul:
                     ++ChildIter;
-                    Acc = irBuilder.CreateMul(Acc, OpFactorGen(*ChildIter)->value);
+                    Acc = irBuilder.CreateMul(Acc, OpFactorGen(*ChildIter)->value, "multmp");
                     ++ChildIter;
                     break;
                 case Operator::ddi:
                     ++ChildIter;
-                    Acc = irBuilder.CreateSDiv(Acc, OpFactorGen(*ChildIter)->value);
+                    Acc = irBuilder.CreateSDiv(Acc, OpFactorGen(*ChildIter)->value, "divtmp");
                     ++ChildIter;
                     break;
                 case Operator::mod:
                     ++ChildIter;
-                    Acc = irBuilder.CreateSRem(Acc, OpFactorGen(*ChildIter)->value);
+                    Acc = irBuilder.CreateSRem(Acc, OpFactorGen(*ChildIter)->value, "remtmp");
                     ++ChildIter;
                     break;
                 default:
@@ -308,7 +308,37 @@ namespace gen {
     }
 
     static void OutputGen(AST *Expr) {
+        auto *FT = llvm::FunctionType::get(llvm::IntegerType::getInt32Ty(llvmContext),
+                                           { llvm::Type::getInt8PtrTy(llvmContext) },
+                                           true);
+        auto *PrintfFunc = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, "printf", &llvmModule);
+        PrintfFunc->setCallingConv(llvm::CallingConv::C);
 
+        std::vector<llvm::Value *> ArgValues;
+        auto FormatStr = std::string(Expr->children->at(0)->dvalue.str);
+        FormatStr = FormatStr.substr(1, FormatStr.length() - 2);
+        auto *FormatStrInst = irBuilder.CreateGlobalStringPtr(FormatStr, "printf_format_str");
+        ArgValues.push_back(FormatStrInst);
+
+        if (Expr->child_num > 1) {
+            auto *ArgList = Expr->children->at(1);
+
+            for (auto *Arg : *(ArgList->children)) {
+                if (Arg->ntype == Type::cconst && Arg->dtype == DataType::integer) {
+                    ArgValues.push_back(llvm::ConstantInt::get(
+                            GetLLVMType(DataType::integer),
+                            Arg->dvalue.integer));
+                } else if (Arg->ntype == Type::lvalue) {
+                    auto *LValue = GetLValue(Arg);
+                    auto *Loaded = irBuilder.CreateLoad(LValue->value, "tmp");
+                    ArgValues.push_back(Loaded);
+                } else {
+                    // TODO string?
+                }
+            }
+        }
+
+        irBuilder.CreateCall(PrintfFunc, ArgValues, "c_printf");
     }
 
     static void BreakGen(AST *Expr) {
@@ -346,7 +376,7 @@ namespace gen {
             }
         }
 
-        return new ValueWrapper(irBuilder.CreateCall(CalleeFunc->func, ArgValues), CalleeFunc->retType);
+        return new ValueWrapper(irBuilder.CreateCall(CalleeFunc->func, ArgValues, "calltmp"), CalleeFunc->retType);
     }
 
     static void ExprGen(AST *Expr) {
@@ -415,14 +445,14 @@ namespace gen {
         llvm::BasicBlock *BB = llvm::BasicBlock::Create(llvmContext, "entry", Func);
         irBuilder.SetInsertPoint(BB);
 
-        int index = 0;
+        auto VarIter = FunVarList->children->begin();
         for (auto &Arg : Func->args()) {
-            auto *Var = FunVarList->children->at(index);
-            auto *name = Var->name;
-            auto type = Var->children->at(0)->dtype;
+            auto *name = (*VarIter)->name;
+            auto type = (*VarIter)->children->at(0)->dtype;
             CreateLocalVariable(name, type);
             Arg.setName(std::string(name));
             irBuilder.CreateStore(&Arg, NamedValues[std::string(name)]->value);
+            ++VarIter;
         }
 
         LocalVarDeclListGen(DefList);
