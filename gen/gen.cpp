@@ -114,21 +114,26 @@ namespace gen {
         }
     }
 
+    static ValueWrapper *GetLValue(AST *LValueNode) {
+        if (LValueNode->child_num == 0) {
+            return NamedValues[std::string(LValueNode->name)];
+        } else {
+            // TODO array
+        }
+    }
+
     static ValueWrapper *OpExprGen(AST *Expr);
 
     static void AssignGen(AST *Expr) {
         auto *LValueNode = Expr->children->at(0);
         auto *OpExpr = Expr->children->at(1);
 
-        ValueWrapper *LValue = nullptr;
-        if (LValueNode->child_num == 0) {
-            LValue = NamedValues[LValueNode->name];
-        } else {
-            // TODO array
-        }
+        ValueWrapper *LValue = GetLValue(LValueNode);
         auto *OpResult = OpExprGen(OpExpr);
         irBuilder.CreateStore(OpResult->value, LValue->value);
     }
+
+    static ValueWrapper *CallGen(AST *Expr);
 
     static ValueWrapper *OpFactorGen(AST *Factor) {
         if (Factor->ntype == Type::expr && strcmp(Factor->name, "Op_Exp") == 0) {
@@ -137,8 +142,13 @@ namespace gen {
             return new ValueWrapper(llvm::ConstantInt::get(
                     GetLLVMType(DataType::integer),
                     Factor->dvalue.integer),DataType::integer);
-        } else {
-            // ...
+        } else if (Factor->ntype == Type::lvalue) {
+            auto *LValue = GetLValue(Factor);
+            auto *Loaded = irBuilder.CreateLoad(LValue->value);
+            return new ValueWrapper(Loaded, LValue->type);
+        } else if (Factor->ntype == Type::expr) {
+            auto *FuncRet = CallGen(Factor);
+            return new ValueWrapper(FuncRet->value, FuncRet->type);
         }
     }
 
@@ -225,7 +235,7 @@ namespace gen {
 
     }
 
-    static void CallGen(AST *Expr) {
+    static ValueWrapper *CallGen(AST *Expr) {
 
     }
 
