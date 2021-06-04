@@ -144,7 +144,7 @@ namespace gen {
                     Factor->dvalue.integer),DataType::integer);
         } else if (Factor->ntype == Type::lvalue) {
             auto *LValue = GetLValue(Factor);
-            auto *Loaded = irBuilder.CreateLoad(LValue->value);
+            auto *Loaded = irBuilder.CreateLoad(LValue->value, "tmp");
             return new ValueWrapper(Loaded, LValue->type);
         } else if (Factor->ntype == Type::expr) {
             auto *FuncRet = CallGen(Factor);
@@ -215,17 +215,17 @@ namespace gen {
 
             switch (CondOp->op) {
                 case Operator::EQ:
-                    return new ValueWrapper(irBuilder.CreateICmpEQ(LHS->value, RHS->value), DataType::integer);
+                    return new ValueWrapper(irBuilder.CreateICmpEQ(LHS->value, RHS->value, "cmptmp"), DataType::integer);
                 case Operator::GE:
-                    return new ValueWrapper(irBuilder.CreateICmpSGE(LHS->value, RHS->value), DataType::integer);
+                    return new ValueWrapper(irBuilder.CreateICmpSGE(LHS->value, RHS->value, "cmptmp"), DataType::integer);
                 case Operator::LE:
-                    return new ValueWrapper(irBuilder.CreateICmpSLE(LHS->value, RHS->value), DataType::integer);
+                    return new ValueWrapper(irBuilder.CreateICmpSLE(LHS->value, RHS->value, "cmptmp"), DataType::integer);
                 case Operator::NE:
-                    return new ValueWrapper(irBuilder.CreateICmpNE(LHS->value, RHS->value), DataType::integer);
+                    return new ValueWrapper(irBuilder.CreateICmpNE(LHS->value, RHS->value, "cmptmp"), DataType::integer);
                 case Operator::LT:
-                    return new ValueWrapper(irBuilder.CreateICmpSLT(LHS->value, RHS->value), DataType::integer);
+                    return new ValueWrapper(irBuilder.CreateICmpSLT(LHS->value, RHS->value, "cmptmp"), DataType::integer);
                 case Operator::GT:
-                    return new ValueWrapper(irBuilder.CreateICmpSGT(LHS->value, RHS->value), DataType::integer);
+                    return new ValueWrapper(irBuilder.CreateICmpSGT(LHS->value, RHS->value, "cmptmp"), DataType::integer);
             }
         }
     }
@@ -339,7 +339,7 @@ namespace gen {
                         Arg->dvalue.integer));
             } else if (Arg->ntype == Type::lvalue) {
                 auto *LValue = GetLValue(Arg);
-                auto *Loaded = irBuilder.CreateLoad(LValue->value);
+                auto *Loaded = irBuilder.CreateLoad(LValue->value, "tmp");
                 ArgValues.push_back(Loaded);
             } else {
                 // TODO string?
