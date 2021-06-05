@@ -1,18 +1,25 @@
 #include "gen.h"
+#include <iostream>
 
 namespace gen {
     struct ValueWrapper {
         llvm::Value *value = nullptr;
         DataType type = DataType::vvoid;
+        std::vector<int> shape;
+        llvm::ArrayType* arrayType;
 
         ValueWrapper(llvm::Value *value, DataType type) {
             this->value = value;
             this->type = type;
         }
 
-        ValueWrapper(llvm::Value *value, DataType type, bool isRet) {
+        ValueWrapper(llvm::Value *value, DataType type, std::vector<AST *> lenArray, llvm::ArrayType *arrayType) {
             this->value = value;
             this->type = type;
+            this->arrayType = arrayType;
+            for (AST *node : lenArray) {
+                shape.push_back(node->dvalue.integer);
+            }
         }
     };
 
@@ -40,6 +47,33 @@ namespace gen {
         }
     }
 
+    static ValueWrapper *GetLValue(AST *LValueNode);
+
+    static ValueWrapper *GetArrayElePtr(std::string Name, std::vector<AST *> *EleIndexList) {
+        auto *ArrayRef = NamedValues[Name];
+        auto *IndexValue = dynamic_cast<llvm::Value *>(llvm::ConstantInt::get(GetLLVMType(integer), 0, true));
+        auto *AccValue = dynamic_cast<llvm::Value *>(llvm::ConstantInt::get(GetLLVMType(integer), 1, true));
+        auto ArrayShapeItr = ArrayRef->shape.rbegin();
+        std::vector<llvm::Value *> IdxVec;
+        IdxVec.push_back(llvm::ConstantInt::get(GetLLVMType(integer), 0, true));
+        for (auto EleIndexItr = EleIndexList->rbegin(); EleIndexItr != EleIndexList->rend(); ++EleIndexItr) {
+            llvm::Value *SelectorValue = nullptr;
+            if ((*EleIndexItr)->ntype == Type::lvalue) {
+                auto *Loaded = irBuilder.CreateLoad(GetLLVMType(integer), GetLValue(*EleIndexItr)->value, "ldtmp");
+                SelectorValue = Loaded;
+            } else {
+                SelectorValue = llvm::ConstantInt::get(GetLLVMType(integer), (*EleIndexItr)->dvalue.integer, true);
+            }
+            llvm::Value *DimValue = llvm::ConstantInt::get(GetLLVMType(integer), *ArrayShapeItr, true);
+            IndexValue = irBuilder.CreateAdd(IndexValue, irBuilder.CreateMul(AccValue, SelectorValue, "multmp"), "addtmp");
+            AccValue = irBuilder.CreateMul(AccValue, DimValue);
+            ++ArrayShapeItr;
+        }
+        IdxVec.push_back(IndexValue);
+        auto *Value = irBuilder.CreateGEP(ArrayRef->value, IdxVec, "arrtmp");
+        return new ValueWrapper(Value, integer);
+    }
+
     static void SingleGlobalDeclGen(std::string Name, DataType Type) {
         llvm::Constant *InitConst;
         llvm::Value *Value;
@@ -54,8 +88,17 @@ namespace gen {
         NamedValues[std::string(Name)] = wvalue;
     }
 
-    static void ArrayGlobalDeclGen(std::string Name, DataType Type, int Len) {
-        // TODO: array
+    static void ArrayGlobalDeclGen(std::string Name, DataType Type, std::vector<AST *> *LenArray) {
+        auto *LLVMType = GetLLVMType(Type);
+        int sum = 1;
+        for (AST* node : *(LenArray)) {
+            sum *= node->dvalue.integer;
+        }
+        auto *ArrayType = llvm::ArrayType::get(LLVMType, sum);
+        auto *Value = new llvm::GlobalVariable(llvmModule, ArrayType, false, llvm::GlobalValue::CommonLinkage, 0, Name);
+        auto *ConstInit = llvm::ConstantAggregateZero::get(ArrayType);
+        Value->setInitializer(ConstInit);
+        NamedValues[Name] = new ValueWrapper(Value, Type, *LenArray, ArrayType);
     }
 
     static void CreateLocalVariable(std::string Name, DataType Type) {
@@ -74,7 +117,7 @@ namespace gen {
             if (Var->child_num == 0) {
                 SingleGlobalDeclGen(Var->name, Type);
             } else {
-                ArrayGlobalDeclGen(Var->name, Type, Var->children->at(0)->dvalue.integer);
+                ArrayGlobalDeclGen(Var->name, Type, Var->children);
             }
         }
     }
@@ -118,7 +161,7 @@ namespace gen {
         if (LValueNode->child_num == 0) {
             return NamedValues[std::string(LValueNode->name)];
         } else {
-            // TODO array
+            return GetArrayElePtr(LValueNode->name, LValueNode->children);
         }
     }
 
@@ -188,12 +231,12 @@ namespace gen {
             switch ((*ChildIter)->op) {
                 case Operator::add:
                     ++ChildIter;
-                    Acc = irBuilder.CreateAdd(Acc, OpTermGen(*ChildIter)->value);
+                    Acc = irBuilder.CreateAdd(Acc, OpTermGen(*ChildIter)->value, "addtmp");
                     ++ChildIter;
                     break;
                 case Operator::min:
                     ++ChildIter;
-                    Acc = irBuilder.CreateSub(Acc, OpTermGen(*ChildIter)->value);
+                    Acc = irBuilder.CreateSub(Acc, OpTermGen(*ChildIter)->value, "subtmp");
                     ++ChildIter;
                     break;
                 default:
@@ -304,11 +347,7 @@ namespace gen {
     }
 
     static void InputGen(AST *Expr) {
-        auto *FT = llvm::FunctionType::get(llvm::IntegerType::getInt32Ty(llvmContext),
-                                           { llvm::Type::getInt8PtrTy(llvmContext) },
-                                           true);
-        auto *ScanfFunc = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, "scanf", &llvmModule);
-        ScanfFunc->setCallingConv(llvm::CallingConv::C);
+        auto *ScanfFunc = NamedFuncs["scanf"]->func;
 
         std::vector<llvm::Value *> ArgValues;
         auto FormatStr = std::string(Expr->children->at(0)->dvalue.str);
@@ -338,11 +377,7 @@ namespace gen {
     }
 
     static void OutputGen(AST *Expr) {
-        auto *FT = llvm::FunctionType::get(llvm::IntegerType::getInt32Ty(llvmContext),
-                                           { llvm::Type::getInt8PtrTy(llvmContext) },
-                                           true);
-        auto *PrintfFunc = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, "printf", &llvmModule);
-        PrintfFunc->setCallingConv(llvm::CallingConv::C);
+        auto *PrintfFunc = NamedFuncs["printf"]->func;
 
         std::vector<llvm::Value *> ArgValues;
         auto FormatStr = std::string(Expr->children->at(0)->dvalue.str);
@@ -406,6 +441,9 @@ namespace gen {
             }
         }
 
+        if (CalleeFunc->retType == vvoid) {
+            return new ValueWrapper(irBuilder.CreateCall(CalleeFunc->func, ArgValues), CalleeFunc->retType);
+        }
         return new ValueWrapper(irBuilder.CreateCall(CalleeFunc->func, ArgValues, "calltmp"), CalleeFunc->retType);
     }
 
@@ -496,9 +534,27 @@ namespace gen {
         llvm::verifyFunction(*Func);
     }
 
+    static void InputAndOutputGen() {
+        auto *FTScanf = llvm::FunctionType::get(llvm::IntegerType::getInt32Ty(llvmContext),
+                                           { llvm::Type::getInt8PtrTy(llvmContext) },
+                                           true);
+        auto *ScanfFunc = llvm::Function::Create(FTScanf, llvm::Function::ExternalLinkage, "scanf", &llvmModule);
+        ScanfFunc->setCallingConv(llvm::CallingConv::C);
+        NamedFuncs["scanf"] = new FunctionWrapper(ScanfFunc, DataType::integer);
+
+        auto *FTPrintf = llvm::FunctionType::get(llvm::IntegerType::getInt32Ty(llvmContext),
+                                           { llvm::Type::getInt8PtrTy(llvmContext) },
+                                           true);
+        auto *PrintfFunc = llvm::Function::Create(FTPrintf, llvm::Function::ExternalLinkage, "printf", &llvmModule);
+        PrintfFunc->setCallingConv(llvm::CallingConv::C);
+        NamedFuncs["printf"] = new FunctionWrapper(PrintfFunc, DataType::integer);
+    }
+
     void ProgramGen(AST *node) {
         AST *DefList = node->children->at(0);
         AST *FunDefList = node->children->at(1);
+
+        InputAndOutputGen();
 
         GlobalVarDeclListGen(DefList);
 

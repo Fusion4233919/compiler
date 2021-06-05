@@ -1,7 +1,7 @@
 int na, ma, nb, mb ;
 int INPUTa[30][30], INPUTb[30][30], OUTPUT[30][30] ;
 
-function void _main(void)
+function int _main(void)
 declare
 	int i, j, k ;
 do
@@ -29,7 +29,7 @@ do
 
 	if (ma != nb) do
 		_output("Incompatible Dimensions\n") ;
-		return ;
+		return 0 ;
 	done
 
 	i = 1; 
@@ -66,4 +66,5 @@ do
 		i = i + 1 ;
 	done
 
+    return 0 ;
 done
