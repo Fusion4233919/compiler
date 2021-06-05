@@ -2,13 +2,14 @@ int name[101][101] ;
 int credit[101] ;
 int score[101] ;
 int tried[101] ;
+int pre[101][101][101][101] ;
 
 int SumScore ;
 int SumCreditTried ;
 int SumCreditGet ;
 int GratuateCredit ;
 
-function void _main(void)
+function int _main(void)
 declare
 	int tmp ;
 	int cnt ;
@@ -22,6 +23,9 @@ declare
 	int curPreSet[101][101] ;
 	int curPre[101] ;
 	int cur[101] ;
+
+	int digitA, digitB ;
+
 	/*		 id	id_string  */
 do
 	SumScore = 0 ;
@@ -55,7 +59,7 @@ do
 			loop ( tmp != ';' && tmp != '|') do
 				curPre[0] = 0 ;
 			
-				while ( tmp != ',' && tmp != ';' && tmp != '|') do
+				loop ( tmp != ',' && tmp != ';' && tmp != '|') do
 					curPre[0] = curPre[0] + 1 ;
 					curPre[curPre[0]] = tmp ;
 					_input("%c", &tmp) ;
@@ -120,7 +124,7 @@ do
 		done
 
 		GratuateCredit = GratuateCredit + credit[cnt] ;
-		if (tried[cnt]) do
+		if (tried[cnt] != 0) do
 			SumCreditTried = SumCreditTried  + credit[cnt] ;
 			SumScore = SumScore + score[cnt] * credit[cnt];
 			if (score[cnt] > 0) do
@@ -140,11 +144,15 @@ do
 	done
 
 	if ( SumCreditTried != 0 ) do
-		_output("GPA: %d.%d\n", SumScore / SumCreditTried, (SumScore * 10 / SumCreditTried) % 10) ;
+		digitA = SumScore / SumCreditTried ;
+		digitB = ((SumScore * 10) / SumCreditTried) % 10 ;
+		_output("GPA: %d.%d\n", digitA, digitB) ;
 	done
 	_output("Hours Attempted: %d\n", SumCreditTried) ;
 	_output("Hours Completed: %d\n", SumCreditGet) ;
-	_output("Credits Remaining: %d\n\n", GratuateCredit - SumCreditGet) ;
+	
+	digitA = GratuateCredit - SumCreditGet ;
+	_output("Credits Remaining: %d\n\n", digitA) ;
 	_output("Possible Courses to Take Next\n") ;
 
 	if (GratuateCredit == SumCreditGet ) do
@@ -154,14 +162,14 @@ do
 	if (GratuateCredit != SumCreditGet ) do
 		i = 1 ;
 		loop ( i <= cnt ) do
-			if (!tried[i]) do
+			if (tried[i] == 0) do
 				tag = 0 ;
 				if (pre[i][0][0][0] == 0) do
 					tag = 1 ;
 				done
 
 				j = 1 ;
-				loop ( j <= pre[i][0][0][0]; ++j ) do
+				loop ( j <= pre[i][0][0][0] ) do
 					tag = 1 ;
 
 					k = 1 ;
@@ -186,7 +194,7 @@ do
 							
 							if (name[l][0] == cur[0] ) do
 								ii = 1 ;
-								for (ii <= cur[0]) do
+								loop (ii <= cur[0]) do
 									if ( name[l][ii] != cur[ii] ) do
 										tagCur = 0 ;
 										break ;
@@ -195,7 +203,7 @@ do
 								done
 							done
 
-							if (tagCur) do
+							if (tagCur != 0) do
 								found = 1 ;
 								if (score[l] == 0) do
 									tag = 0 ;
@@ -221,12 +229,11 @@ do
 					_output("  ") ;
 
 					hhh = 1 ;
-					for (hhh <= name[i][0]) do
+					loop (hhh <= name[i][0]) do
 						_output("%c", name[i][hhh]) ;
 						hhh = hhh + 1 ;
 					done
 					_output("\n") ;
-					// cout << name[i] << endl ;
 				done
 
 			done
@@ -234,5 +241,5 @@ do
 		done
 	
 	done
-
+	return 0 ;
 done
