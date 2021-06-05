@@ -103,7 +103,6 @@ namespace gen {
 
     static void CreateLocalVariable(std::string Name, DataType Type) {
         llvm::Type *Ty = GetLLVMType(Type);
-        // TODO: array
         llvm::Value *Value = irBuilder.CreateAlloca(Ty, nullptr, std::string(Name));
         auto *wvalue = new ValueWrapper(Value, Type);
         NamedValues[std::string(Name)] = wvalue;
@@ -134,8 +133,16 @@ namespace gen {
         NamedValues[std::string(Name)] = wvalue;
     }
 
-    static void ArrayLocalDeclGen(std::string Name, DataType Type, int Len) {
-        // TODO: array
+    static void ArrayLocalDeclGen(std::string Name, DataType Type, std::vector<AST *> *LenArray) {
+        auto *LLVMType = GetLLVMType(Type);
+        int sum = 1;
+        for (AST* node : *(LenArray)) {
+            sum *= node->dvalue.integer;
+        }
+        auto *ArrayType = llvm::ArrayType::get(LLVMType, sum);
+        auto *LenValue = llvm::ConstantInt::get(GetLLVMType(integer), sum, true);
+        auto *Value = irBuilder.CreateAlloca(ArrayType, LenValue, Name);
+        NamedValues[Name] = new ValueWrapper(Value, Type, *LenArray, ArrayType);
     }
 
     static void LocalVarDeclGen(AST* Def) {
@@ -146,7 +153,7 @@ namespace gen {
             if (Var->child_num == 0) {
                 SingleLocalDeclGen(Var->name, Type);
             } else {
-                ArrayLocalDeclGen(Var->name, Type, Var->children->at(0)->dvalue.integer);
+                ArrayLocalDeclGen(Var->name, Type, Var->children);
             }
         }
     }
@@ -279,7 +286,7 @@ namespace gen {
         ++ChildIter;
         while (ChildIter != Term->children->end()) {
             ++ChildIter;
-            Acc = irBuilder.CreateAnd(Acc, CondFactorGen(*ChildIter)->value);
+            Acc = irBuilder.CreateAnd(Acc, CondFactorGen(*ChildIter)->value, "andtmp");
             ++ChildIter;
         }
         return new ValueWrapper(Acc, DataType::integer);
@@ -291,7 +298,7 @@ namespace gen {
         ++ChildIter;
         while (ChildIter != Expr->children->end()) {
             ++ChildIter;
-            Acc = irBuilder.CreateOr(Acc, CondTermGen(*ChildIter)->value);
+            Acc = irBuilder.CreateOr(Acc, CondTermGen(*ChildIter)->value, "ortmp");
             ++ChildIter;
         }
         return new ValueWrapper(Acc, DataType::integer);
