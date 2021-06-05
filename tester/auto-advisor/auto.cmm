@@ -151,6 +151,10 @@ do
 		if (digitC >= 5) do
 			digitB = digitB + 1 ;
 		done
+		if (digitB == 10) do
+			digitB = 0 ;
+			digitA = digitA + 1 ;
+		done
 
 		_output("GPA: %d.%d\n", digitA, digitB) ;
 	done

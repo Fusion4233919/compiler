@@ -158,6 +158,10 @@ int main() {
 		int a3 = (sum_score * 100 / sum_credit_tried) % 10 ;
 		if ( a3 >= 5 )
 			++a2 ;
+		if ( a2 ==10 ) {
+			a2 = 0 ;
+			a1 = a1 + 1 ;
+		}
 		printf("GPA: %d.%d\n", a1, a2) ;
 	}
 	printf("Hours Attempted: %d\n", sum_credit_tried) ;

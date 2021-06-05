@@ -27,10 +27,10 @@ int main() {
 			scanf("%c", &tmp) ;
 		}
 
-		cout << name[cnt] << endl ;
+		// cout << name[cnt] << endl ;
 
 		scanf("%d", &credit[cnt]) ;
-		printf("credit = %d\n", credit[cnt]) ;
+		//printf("credit = %d\n", credit[cnt]) ;
 
 		scanf("%c", &tmp) ;
 		scanf("%c", &tmp) ;
@@ -98,8 +98,8 @@ int main() {
 				sum_credit_get += credit[cnt] ;
 			}
 		}
-		cout << "tried = " << tried[cnt] <<endl ;
-		cout << "score = " << score[cnt] << endl ;
+		// cout << "tried = " << tried[cnt] <<endl ;
+		// cout << "score = " << score[cnt] << endl ;
 		
 		scanf("%c", &tmp) ;
 		++cnt ;
@@ -137,8 +137,8 @@ int main() {
 		return 0 ;
 	} else {
 		for ( int i = 1; i <= cnt; ++i ) {
-			if (!tried[i]) {
-				cout << "checking.. " << name[i] << endl ;
+			if (!score[i]) {
+				// cout << "checking.. " << name[i] << endl ;
 				int tag = 0 ;
 				if (pre[i].size() == 0)
 					tag = 1 ;
@@ -146,11 +146,11 @@ int main() {
 					tag = 1 ;
 					for ( int k = 0; k < pre[i][j].size(); ++k ) {
 						string cur = pre[i][j][k] ;
-						cout << '\t' << cur << endl ;
+						// cout << '\t' << cur << endl ;
 						int found = 0 ;
 						for ( int l = 1; l <= cnt; ++l ) {
 							if (name[l] == cur) {
-								cout << "\t\t" << name[l] << endl ;
+								// cout << "\t\t" << name[l] << endl ;
 								found = 1 ;
 								if (score[l] == 0)
 									tag = 0 ;
