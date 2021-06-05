@@ -4,6 +4,10 @@ int score[101] ;
 int tried[101] ;
 int pre[101][101][101][101] ;
 
+int curPreSet[101][101] ;
+int curPre[101] ;
+int cur[101] ;
+
 int SumScore ;
 int SumCreditTried ;
 int SumCreditGet ;
@@ -20,11 +24,8 @@ declare
 
 	int i, j, k, l, ii, hhh ;
 
-	int curPreSet[101][101] ;
-	int curPre[101] ;
-	int cur[101] ;
 
-	int digitA, digitB ;
+	int digitA, digitB, digitC ;
 
 	/*		 id	id_string  */
 do
@@ -146,6 +147,11 @@ do
 	if ( SumCreditTried != 0 ) do
 		digitA = SumScore / SumCreditTried ;
 		digitB = ((SumScore * 10) / SumCreditTried) % 10 ;
+		digitC = ((SumScore * 100) / SumCreditTried) % 10 ;
+		if (digitC >= 5) do
+			digitB = digitB + 1 ;
+		done
+
 		_output("GPA: %d.%d\n", digitA, digitB) ;
 	done
 	_output("Hours Attempted: %d\n", SumCreditTried) ;
