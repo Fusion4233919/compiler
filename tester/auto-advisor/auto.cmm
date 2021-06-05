@@ -162,7 +162,7 @@ do
 	if (GratuateCredit != SumCreditGet ) do
 		i = 1 ;
 		loop ( i <= cnt ) do
-			if (tried[i] == 0) do
+			if (score[i] == 0) do
 				tag = 0 ;
 				if (pre[i][0][0][0] == 0) do
 					tag = 1 ;
