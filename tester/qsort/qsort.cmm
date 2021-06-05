@@ -39,7 +39,7 @@ do
 	_qsort(ll, r) ;
 done
 
-function void _main(void)
+function int _main(void)
 declare
 	int i ;
 do
@@ -54,7 +54,9 @@ do
 		
 	i = 1 ;
 	loop (i <= n) do
-		_output("%d\n", data[i]);
+		_output("%d", data[i]);
 		i = i + 1 ;
 	done
+
+	return 0 ;
 done
