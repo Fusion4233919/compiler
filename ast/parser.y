@@ -8,7 +8,10 @@
 %{
     #include <stdio.h>
     #include "AST.h"
-    
+#ifdef __APPLE__
+    #include "scanner.l.cpp"
+#endif
+
     AST *temp;
     AST *head = NULL;
     extern int yylex();

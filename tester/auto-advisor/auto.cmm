@@ -15,12 +15,12 @@ declare
 
 	int tag ;
 	int found ;
-	int tag_cur ;
+	int tagCur ;
 
 	int i, j, k, l, ii, hhh ;
 
-	int cur_pre_set[101][101] ;
-	int cur_pre[101] ;
+	int curPreSet[101][101] ;
+	int curPre[101] ;
 	int cur[101] ;
 	/*		 id	id_string  */
 do
@@ -31,7 +31,7 @@ do
 	
 	tmp = 0 ;
 	cnt = 1 ;
-	_input("%c", &tmp) £»
+	_input("%c", &tmp) ;
 
 	loop(1 == 1) do
 		if (tmp == '\n' || tmp == '\r' ) do
@@ -50,22 +50,22 @@ do
 		_input("%c", &tmp) ;
 
 		loop (tmp != '|' ) do
-			cur_pre_set[0][0] = 0 ;
+			curPreSet[0][0] = 0 ;
 
 			loop ( tmp != ';' && tmp != '|') do
-				cur_pre[0] = 0 ;
+				curPre[0] = 0 ;
 			
 				while ( tmp != ',' && tmp != ';' && tmp != '|') do
-					cur_pre[0] = cur_pre[0] + 1 ;
-					cur_pre[cur_pre[0]] = tmp ;
+					curPre[0] = curPre[0] + 1 ;
+					curPre[curPre[0]] = tmp ;
 					_input("%c", &tmp) ;
 				done
-				cur_pre_set[0][0] = cur_pre_set[0][0] + 1 ;
-				cur_pre_set[ cur_pre_set[0][0] ][0] = cur_pre[0] ;
+				curPreSet[0][0] = curPreSet[0][0] + 1 ;
+				curPreSet[ curPreSet[0][0] ][0] = curPre[0] ;
 
 				i = 1 ;
-				loop (i <= cur_pre[0]) do
-					cur_pre_set[ cur_pre_set[0][0] ][i] = cur_pre[i] ;
+				loop (i <= curPre[0]) do
+					curPreSet[ curPreSet[0][0] ][i] = curPre[i] ;
 					i = i + 1 ;
 				done
 				if (tmp == ',') do
@@ -74,14 +74,14 @@ do
 			done
 
 			pre[cnt][0][0][0] = pre[cnt][0][0][0] + 1 ;
-			pre[cnt][ pre[cnt][0][0][0] ][0][0] = cur_pre_set[0][0] ;
+			pre[cnt][ pre[cnt][0][0][0] ][0][0] = curPreSet[0][0] ;
 
 			i = 1 ;
-			loop (i <= cur_pre_set[0][0] ) do
-				pre[cnt][ pre[cnt][0][0][0] ][i][0] = cur_pre_set[i][0] ;
+			loop (i <= curPreSet[0][0] ) do
+				pre[cnt][ pre[cnt][0][0][0] ][i][0] = curPreSet[i][0] ;
 				j = 1 ;
-				loop (j <= cur_pre_set[i][0] ) do
-					pre[cnt][ pre[cnt][0][0][0] ][i][j] = cur_pre_set[i][j] ;
+				loop (j <= curPreSet[i][0] ) do
+					pre[cnt][ pre[cnt][0][0][0] ][i][j] = curPreSet[i][j] ;
 					j = j + 1 ;
 				done
 				i = i + 1 ;
@@ -178,24 +178,24 @@ do
 						
 						l = 1 ;
 						loop ( l <= cnt ) do
-							tag_cur = 1 ;
+							tagCur = 1 ;
 
 							if (name[l][0] != cur[0] ) do
-								tag_cur = 0 ;
+								tagCur = 0 ;
 							done
 							
 							if (name[l][0] == cur[0] ) do
 								ii = 1 ;
 								for (ii <= cur[0]) do
 									if ( name[l][ii] != cur[ii] ) do
-										tag_cur = 0 ;
+										tagCur = 0 ;
 										break ;
 									done
 									ii = ii + 1 ;
 								done
 							done
 
-							if (tag_cur) do
+							if (tagCur) do
 								found = 1 ;
 								if (score[l] == 0) do
 									tag = 0 ;
