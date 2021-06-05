@@ -1,8 +1,8 @@
 /************************************
     Name:        AST.cpp 
-    Version:     v2.3
+    Version:     v3.0
     Modefied by: fusion
-                 2021-6-4 12:23
+                 2021-6-5 14:15
 ************************************/
 
 #include "AST.h"
@@ -12,6 +12,51 @@
 #include <queue>
 
 int AST::IDAccumulate = 0;
+
+static bool error = 0;
+
+static char *StrPreprocess(char *str)
+{
+    int len = strlen(str);
+    int l = 0, r = 0;
+    while (r < len)
+    {
+        if (str[r] != '\\')
+            str[l] = str[r];
+        else
+        {
+            r++;
+            switch (str[r])
+            {
+            case 'n':
+                str[l] = '\n';
+                break;
+            case 't':
+                str[l] = '\t';
+                break;
+            case 'r':
+                str[l] = '\r';
+                break;
+            case '0':
+                str[l] = '\0';
+                break;
+            case '\\':
+                str[l] = '\\';
+                break;
+            case '\'':
+                str[l] = '\'';
+                break;
+            case '\"':
+                str[l] = '\"';
+                break;
+            }
+        }
+        l++;
+        r++;
+    }
+    str[l] = '\0';
+    return str;
+}
 
 AST::AST(Type type, const char *name)
 {
@@ -38,6 +83,7 @@ AST::AST(int value)
 
 AST::AST(char *value)
 {
+    value = StrPreprocess(value);
     this->id = ++IDAccumulate;
     this->ntype = Type::cconst;
     this->name = "\0";
@@ -213,7 +259,7 @@ void AST::BuildTable(Fun_attr *current_fun)
     }
 }
 
-void AST::CheckTable(Fun_attr *current_fun)
+bool AST::CheckTable(Fun_attr *current_fun)
 {
     Var_attr *temp = NULL;
     switch (this->ntype)
@@ -267,13 +313,13 @@ void AST::CheckTable(Fun_attr *current_fun)
         else
         {
             printf("No definition of %s\n", this->name.c_str());
-            return;
+            return error = true;
         }
 
         if (temp->dim != this->child_num)
         {
             printf("Dimention not match of %s\n", this->name.c_str());
-            return;
+            return error = true;
         }
         this->dtype = temp->dtype;
         for (int _ = 0; _ < this->child_num; _++)
@@ -288,7 +334,7 @@ void AST::CheckTable(Fun_attr *current_fun)
             if (funs.find(this->name) == funs.end())
             {
                 printf("No definition of %s\n", this->name.c_str());
-                return;
+                return error = true;
             }
             Fun_attr *temp = funs.find(this->name)->second;
             this->dtype = temp->rtype;
@@ -297,13 +343,13 @@ void AST::CheckTable(Fun_attr *current_fun)
                 if (temp->argc != 0)
                 {
                     printf("No definition of %s()\n", this->name.c_str());
-                    return;
+                    return error = true;
                 }
             }
             else if (this->children->at(0)->child_num != temp->argc)
             {
                 printf("Number not match of %s\n", this->name.c_str());
-                return;
+                return error = true;
             }
             else
             {
@@ -312,7 +358,7 @@ void AST::CheckTable(Fun_attr *current_fun)
                     if (this->children->at(0)->children->at(_)->dtype != (temp->argv->at(_)).first)
                     {
                         printf("Type not match on %s of %s\n", (temp->argv->at(_)).second.c_str(), this->name.c_str());
-                        return;
+                        return error = true;
                     }
             }
         }
@@ -323,7 +369,7 @@ void AST::CheckTable(Fun_attr *current_fun)
                 if (current_fun->rtype != DataType::vvoid)
                 {
                     printf("Return Type not match of %s\n", current_fun->name.c_str());
-                    return;
+                    return error = true;
                 }
             }
             else
@@ -332,7 +378,7 @@ void AST::CheckTable(Fun_attr *current_fun)
                 if (current_fun->rtype != this->children->at(0)->dtype)
                 {
                     printf("Return type not match of %s\n", current_fun->name.c_str());
-                    return;
+                    return error = true;
                 }
             }
         }
@@ -352,7 +398,7 @@ void AST::CheckTable(Fun_attr *current_fun)
             if (this->children->at(0)->dtype != this->children->at(1)->dtype)
             {
                 printf("Assign type not match of %s\n", this->children->at(0)->name.c_str());
-                return;
+                return error = true;
             }
         }
         else if (this->name == "Op_Exp")
@@ -364,7 +410,7 @@ void AST::CheckTable(Fun_attr *current_fun)
                 if (this->children->at(_)->dtype != DataType::integer)
                 {
                     puts("Operand Type Error !");
-                    return;
+                    return error = true;
                 }
             }
             this->dtype = DataType::integer;
@@ -382,7 +428,7 @@ void AST::CheckTable(Fun_attr *current_fun)
                     else
                     {
                         puts("Operand Type Error !");
-                        return;
+                        return error = true;
                     }
                 }
             }
@@ -397,7 +443,7 @@ void AST::CheckTable(Fun_attr *current_fun)
                 if (this->children->at(_)->dtype != DataType::integer)
                 {
                     puts("Operand Type Error !");
-                    return;
+                    return error = true;
                 }
             }
             this->dtype = DataType::integer;
@@ -411,7 +457,7 @@ void AST::CheckTable(Fun_attr *current_fun)
                 if (this->children->at(_)->dtype != DataType::integer)
                 {
                     puts("Operand Type Error !");
-                    return;
+                    return error = true;
                 }
             }
             this->dtype = DataType::integer;
@@ -423,13 +469,13 @@ void AST::CheckTable(Fun_attr *current_fun)
             if (this->children->at(0)->dtype != DataType::integer)
             {
                 puts("Operand Type Error !");
-                return;
+                return error = true;
             }
             this->children->at(2)->CheckTable(current_fun);
             if (this->children->at(2)->dtype != DataType::integer)
             {
                 puts("Operand Type Error !");
-                return;
+                return error = true;
             }
             this->dtype = DataType::integer;
         }
@@ -440,7 +486,7 @@ void AST::CheckTable(Fun_attr *current_fun)
             if (this->children->at(0)->dtype != DataType::integer)
             {
                 puts("Operand Type Error !");
-                return;
+                return error = true;
             }
             this->children->at(1)->CheckTable(current_fun);
             this->dtype = DataType::integer;
@@ -452,7 +498,7 @@ void AST::CheckTable(Fun_attr *current_fun)
             if (this->children->at(0)->dtype != DataType::integer)
             {
                 puts("Operand Type Error !");
-                return;
+                return error = true;
             }
             this->children->at(1)->CheckTable(current_fun);
             this->dtype = DataType::integer;
@@ -462,4 +508,5 @@ void AST::CheckTable(Fun_attr *current_fun)
     default:
         break;
     }
+    return error;
 }

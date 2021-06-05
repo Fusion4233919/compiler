@@ -49,7 +49,7 @@ int main(int argc, const char *argv[])
     //head->print();
     head->BuildTable(NULL);
     showTable();
-    head->CheckTable(NULL);
-    gen::ProgramGen(head);
+    if (!head->CheckTable(NULL));
+        gen::ProgramGen(head);
     return 0;
 }

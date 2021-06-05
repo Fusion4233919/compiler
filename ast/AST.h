@@ -1,8 +1,8 @@
 /************************************
     Name:        AST.h 
-    Version:     v2.3
+    Version:     v3.0
     Modefied by: fusion
-                 2021-6-4 12:23
+                 2021-6-5 14:20
 ************************************/
 
 #ifndef AST_H
@@ -125,9 +125,8 @@ public:
     ~AST();
     void Insert(AST *);
     void BuildTable(Fun_attr *);
-    void CheckTable(Fun_attr *);
+    bool CheckTable(Fun_attr *);
     void print(void);
 };
-
 
 #endif
