@@ -351,7 +351,6 @@ namespace gen {
 
         std::vector<llvm::Value *> ArgValues;
         auto FormatStr = std::string(Expr->children->at(0)->dvalue.str);
-        FormatStr = FormatStr.substr(1, FormatStr.length() - 2);
         auto *FormatStrInst = irBuilder.CreateGlobalStringPtr(FormatStr, "scanf_format_str");
         ArgValues.push_back(FormatStrInst);
 
@@ -381,7 +380,6 @@ namespace gen {
 
         std::vector<llvm::Value *> ArgValues;
         auto FormatStr = std::string(Expr->children->at(0)->dvalue.str);
-        FormatStr = FormatStr.substr(1, FormatStr.length() - 2);
         auto *FormatStrInst = irBuilder.CreateGlobalStringPtr(FormatStr, "printf_format_str");
         ArgValues.push_back(FormatStrInst);
 
