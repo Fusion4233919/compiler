@@ -149,20 +149,18 @@ void AST::BuildTable(Fun_attr *current_fun)
     {
     case Type::none:
     {
-        if (this->name == "program")
-        {
-            this->children->at(0)->BuildTable(NULL);
-            this->children->at(1)->BuildTable(NULL);
-        }
-        if (this->name == "Def")
-        {
-            /* TYPE Var_List */
-            this->children->at(1)->dtype = this->children->at(0)->dtype;
-            this->dtype = this->children->at(0)->dtype;
-            this->children->at(1)->BuildTable(current_fun);
-        }
+        this->children->at(0)->BuildTable(NULL);
+        this->children->at(1)->BuildTable(NULL);
+        break;
     }
-    break;
+    case Type::defi:
+    {
+        /* TYPE Var_List */
+        this->children->at(1)->dtype = this->children->at(0)->dtype;
+        this->dtype = this->children->at(0)->dtype;
+        this->children->at(1)->BuildTable(current_fun);
+        break;
+    }
     case Type::func:
     {
         /* FUN_TYPE Fun_Var_List  Def_List Exp_List */
@@ -175,19 +173,23 @@ void AST::BuildTable(Fun_attr *current_fun)
         funs[this->name] = new Fun_attr(this->name, this->dtype);
         this->children->at(1)->BuildTable(funs[this->name]);
         this->children->at(2)->BuildTable(funs[this->name]);
+        break;
     }
-    break;
     case Type::list:
     {
         if (this->name == "Def_List")
         {
             for (int _ = 0; _ < this->child_num; _++)
+            {
                 this->children->at(_)->BuildTable(current_fun);
+            }
         }
         if (this->name == "Fun_List")
         {
             for (int _ = 0; _ < this->child_num; _++)
+            {
                 this->children->at(_)->BuildTable(NULL);
+            }
         }
         if (this->name == "Var_List")
         {
@@ -200,10 +202,12 @@ void AST::BuildTable(Fun_attr *current_fun)
         if (this->name == "Fun_Var_List")
         {
             for (int _ = 0; _ < this->child_num; _++)
+            {
                 this->children->at(_)->BuildTable(current_fun);
+            }
         }
+        break;
     }
-    break;
     case Type::var:
     {
         if (current_fun == NULL)
@@ -219,21 +223,29 @@ void AST::BuildTable(Fun_attr *current_fun)
             printf("Multiple definition of %s\n", this->name.c_str());
             return;
         }
+
         temp = new Var_attr(this->name, this->dtype);
         if (current_fun != NULL)
+        {
             (*(current_fun->locvars))[this->name] = temp;
+        }
         else
+        {
             glovars[this->name] = temp;
+        }
         temp->belong = current_fun;
+
         if (this->child_num)
         {
             temp->dim = this->child_num;
             temp->dimention = new std::vector<int>;
             for (int _ = 0; _ < this->child_num; _++)
+            {
                 temp->dimention->push_back((this->children->at(_)->dvalue).integer);
+            }
         }
+        break;
     }
-    break;
     case Type::fvar:
     {
         /* TYPE */
@@ -252,8 +264,8 @@ void AST::BuildTable(Fun_attr *current_fun)
         }
         current_fun->argc++;
         current_fun->argv->push_back(std::pair<DataType, std::string>(this->dtype, this->name));
+        break;
     }
-    break;
     default:
         break;
     }
@@ -267,38 +279,48 @@ bool AST::CheckTable(Fun_attr *current_fun)
     case Type::none:
     {
         if (this->name == "program")
+        {
             this->children->at(1)->CheckTable(NULL);
+        }
+        break;
     }
-    break;
     case Type::func:
     {
         this->children->at(3)->CheckTable(funs[this->name]);
+        break;
     }
-    break;
     case Type::list:
     {
         if (this->name == "Fun_List")
         {
             for (int _ = 0; _ < this->child_num; _++)
+            {
                 this->children->at(_)->CheckTable(NULL);
+            }
         }
         if (this->name == "Exp_List")
         {
             for (int _ = 0; _ < this->child_num; _++)
+            {
                 this->children->at(_)->CheckTable(current_fun);
+            }
         }
         if (this->name == "List")
         {
             for (int _ = 0; _ < this->child_num; _++)
+            {
                 this->children->at(_)->CheckTable(current_fun);
+            }
         }
         if (this->name == "LList")
         {
             for (int _ = 0; _ < this->child_num; _++)
+            {
                 this->children->at(_)->CheckTable(current_fun);
+            }
         }
+        break;
     }
-    break;
     case Type::lvalue:
     {
         temp = NULL;
@@ -323,10 +345,14 @@ bool AST::CheckTable(Fun_attr *current_fun)
         }
         this->dtype = temp->dtype;
         for (int _ = 0; _ < this->child_num; _++)
+        {
             if (this->children->at(_)->ntype == Type::lvalue)
+            {
                 this->children->at(_)->CheckTable(current_fun);
+            }
+        }
+        break;
     }
-    break;
     case Type::expr:
     {
         if (this->name[0] == '_')
@@ -355,11 +381,13 @@ bool AST::CheckTable(Fun_attr *current_fun)
             {
                 this->children->at(0)->CheckTable(current_fun);
                 for (int _ = 0; _ < temp->argc; _++)
+                {
                     if (this->children->at(0)->children->at(_)->dtype != (temp->argv->at(_)).first)
                     {
                         printf("Type not match on %s of %s\n", (temp->argv->at(_)).second.c_str(), this->name.c_str());
                         return error = true;
                     }
+                }
             }
         }
         else if (this->name == "return")
@@ -389,7 +417,9 @@ bool AST::CheckTable(Fun_attr *current_fun)
         else if (this->name == "printf")
         {
             if (this->child_num > 1)
+            {
                 this->children->at(1)->CheckTable(current_fun);
+            }
         }
         else if (this->name == "As_Exp")
         {
@@ -423,9 +453,7 @@ bool AST::CheckTable(Fun_attr *current_fun)
                 this->children->at(_)->CheckTable(current_fun);
                 if (this->children->at(_)->dtype != DataType::integer)
                 {
-                    if (this->child_num == 1 && this->children->at(0)->name[0] == '_')
-                        ;
-                    else
+                    if (!(this->child_num == 1 && this->children->at(0)->name[0] == '_'))
                     {
                         puts("Operand Type Error !");
                         return error = true;
@@ -503,8 +531,8 @@ bool AST::CheckTable(Fun_attr *current_fun)
             this->children->at(1)->CheckTable(current_fun);
             this->dtype = DataType::integer;
         }
+        break;
     }
-    break;
     default:
         break;
     }

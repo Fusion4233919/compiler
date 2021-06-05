@@ -54,8 +54,7 @@
 "continue"              return CONTINUE;
 "return"                return RETURN;
 
-"int"                   return INT;     /* type 
-"string"                return STRING;  */
+"int"                   return INT;     /* type */
 "void"                  return VOID;
 
 "_input"                return INPUT;

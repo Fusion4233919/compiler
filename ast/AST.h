@@ -14,6 +14,7 @@
 typedef enum Type
 {
     none,
+    defi,
     func,
     cconst,
     var,
