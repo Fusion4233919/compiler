@@ -119,7 +119,7 @@ do
 			_input("%c", &tmp) ;
 		done
 
-		GratuateCredit += credit[cnt] ;
+		GratuateCredit = GratuateCredit + credit[cnt] ;
 		if (tried[cnt]) do
 			SumCreditTried = SumCreditTried  + credit[cnt] ;
 			SumScore = SumScore + score[cnt] * credit[cnt];
@@ -129,29 +129,29 @@ do
 		done
 
 		_input("%c", &tmp) ;
-		++cnt ;
+		cnt = cnt + 1;
 
 	done
 
 	cnt = cnt - 1 ;
 
-	if ( sum_credit_tried == 0 ) do
+	if ( SumCreditTried == 0 ) do
 		_output("GPA: 0.0\n") ;
 	done
 
-	if ( sum_credit_tried != 0 ) do
-		_output("GPA: %.1f\n", 1.0 * sum_score / sum_credit_tried) ;
+	if ( SumCreditTried != 0 ) do
+		_output("GPA: %d.%d\n", SumScore / SumCreditTried, (SumScore * 10 / SumCreditTried) % 10) ;
 	done
-	_output("Hours Attempted: %d\n", sum_credit_tried) ;
-	_output("Hours Completed: %d\n", sum_credit_get) ;
-	_output("Credits Remaining: %d\n\n", gratuate_credit - sum_credit_get) ;
+	_output("Hours Attempted: %d\n", SumCreditTried) ;
+	_output("Hours Completed: %d\n", SumCreditGet) ;
+	_output("Credits Remaining: %d\n\n", GratuateCredit - SumCreditGet) ;
 	_output("Possible Courses to Take Next\n") ;
 
-	if (gratuate_credit == sum_credit_get ) do
+	if (GratuateCredit == SumCreditGet ) do
 		_output("  None - Congratulations!\n") ;
 		return 0 ;
 	done
-	if (gratuate_credit != sum_credit_get ) do
+	if (GratuateCredit != SumCreditGet ) do
 		i = 1 ;
 		loop ( i <= cnt ) do
 			if (!tried[i]) do
