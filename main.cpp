@@ -58,6 +58,7 @@ int main(int argc, const char *argv[])
         getchar();
         return 1;
     }
+
     yyin = file_in;
     yyparse();
     fclose(file_in);
@@ -66,5 +67,12 @@ int main(int argc, const char *argv[])
     if (head->CheckTable(NULL));
     showTable();
     gen::ProgramGen(head);
+#ifdef __APPLE__
+    if (argc == 2) return 0;
+    const char *option = argv[2];
+    if (strcmp(option, "-e") == 0) {
+        system("/usr/local/llvm/12.0.0/bin/llc ./mhl.ll && gcc -o mhl -lm mhl.S");
+    }
+#endif
     return 0;
 }

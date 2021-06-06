@@ -11,7 +11,6 @@ namespace gen {
         llvm::ArrayType* arrayType;
         std::string belong = "";
 
-        // TODO
         bool isFunc = false;
 
         ValueWrapper(llvm::Value *value, DataType type, std::string belong = "", bool isFunc = false) {
@@ -60,7 +59,6 @@ namespace gen {
         if (Type == DataType::integer) {
             return llvm::IntegerType::getInt32Ty(llvmContext);
         } else {
-            // TODO mock int -> int type
             std::vector<llvm::Type *> TypeList = { GetLLVMType(integer) };
             return llvm::FunctionType::get(GetLLVMType(integer), TypeList, false);
         }
@@ -115,8 +113,6 @@ namespace gen {
             llvm::Type *llvmType = llvm::Type::getInt32Ty(llvmContext);
             InitConst = llvm::dyn_cast<llvm::Constant>(llvm::ConstantInt::get(llvmType, 0, true));
             Value = new llvm::GlobalVariable(llvmModule, llvmType, false, llvm::GlobalValue::CommonLinkage, InitConst, std::string(Name));
-        } else if (Type == DataType::string) {
-            // TODO: string
         }
         auto *wvalue = new ValueWrapper(Value, Type);
         NamedGlobalValues[std::string(Name)] = wvalue;
@@ -421,8 +417,6 @@ namespace gen {
                 } else if (Arg->ntype == Type::lvalue) {
                     auto *LValue = GetLValue(Arg);
                     ArgValues.push_back(LValue->value);
-                } else {
-                    // TODO string?
                 }
             }
         }
@@ -451,8 +445,6 @@ namespace gen {
                     auto *LValue = GetLValue(Arg);
                     auto *Loaded = irBuilder.CreateLoad(LValue->value, "tmp");
                     ArgValues.push_back(Loaded);
-                } else {
-
                 }
             }
         }
