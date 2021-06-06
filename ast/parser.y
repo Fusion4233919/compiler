@@ -1,8 +1,8 @@
 /************************************
     Name:        parser.y 
-    Version:     v2.0
+    Version:     v2.1
     Modefied by: fusion
-                 2021-6-6 11:37
+                 2021-6-6 21:32
 ************************************/
 
 %{
@@ -108,8 +108,10 @@ Fun_Value       : Fun_ID '(' List ')' {$$=new AST(Type::expr, $1); delete $1; $$
 
 List            : List ',' LValue {$$=$1; $$->Insert($3);}
                 | List ',' Number {$$=$1; $$->Insert(new AST($3));}
+                | List ',' Fun_ID {$$=$1; temp=new AST(Type::var, $3); delete $3; $$->Insert(temp); $$->Insert(temp);}
                 | LValue {$$=new AST(Type::list, "List"); $$->Insert($1);}
                 | Number {$$=new AST(Type::list, "List"); $$->Insert(new AST($1));}
+                | Fun_ID {$$=new AST(Type::list, "List"); temp=new AST(Type::var, $1); delete $1; $$->Insert(temp);}
                 ;
 
 LList           : LList ',' '&' LValue {$$=$1; $$->Insert($4);}

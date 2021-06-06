@@ -1,8 +1,8 @@
 /************************************
     Name:        AST.cpp 
-    Version:     v4.1
+    Version:     v4.2
     Modefied by: fusion
-                 2021-6-6 12:47
+                 2021-6-6 21:32
 ************************************/
 
 #include "AST.h"
@@ -361,6 +361,15 @@ bool AST::CheckTable(Fun_attr *current_fun)
             for (int _ = 0; _ < this->child_num; _++)
             {
                 this->children->at(_)->CheckTable(current_fun);
+                if (this->children->at(_)->ntype == Type::var)
+                {
+                    this->children->at(_)->dtype = DataType::function;
+                    if (current_fun->locfuns->find(this->children->at(_)->name) == current_fun->locfuns->end() && funs.find(this->children->at(_)->name) == funs.end())
+                    {
+                        printf("No implement of %s\n", this->children->at(_)->name.c_str());
+                        return error = true;
+                    }
+                }
             }
         }
         if (this->name == "LList")
@@ -416,6 +425,11 @@ bool AST::CheckTable(Fun_attr *current_fun)
         if (this->name[0] == '_')
         {
             Fun_attr *temp = NULL;
+            if (current_fun->locvars->find(this->name) != current_fun->locvars->end())
+            {
+                return error;
+            }
+
             if (current_fun->locfuns->find(this->name) != current_fun->locfuns->end())
             {
                 temp = current_fun->locfuns->find(this->name)->second;
