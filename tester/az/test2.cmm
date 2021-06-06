@@ -1,8 +1,16 @@
-string x ;
 
-function void _main(void)
+
+void _main(void)
 declare
+    fn _x;
 do
+    int _q(void)
+    declare
+        int x;
+    do 
+        x = 1;
+        return x;
+    done
+    
     _output("RUA") ;
 done
-// declaration is none

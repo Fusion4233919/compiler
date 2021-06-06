@@ -1,0 +1,19 @@
+function int _main(void)
+declare
+    fn _x, _y;
+do
+    function int _q(int i)
+    declare
+        int x;
+    do 
+        x = 1 + i;
+        return x;
+    done
+
+    _x = _q();
+    _q(1);
+    _x(1);
+    _y = _x;
+    _y(1);
+    _output("RUA") ;
+done
