@@ -1,14 +1,17 @@
 Program         = {Def}, {Fun_Def}
 Def_List        = {Def_List}, {Def}, {";"} |
 Fun_Def_List    = {Fun_Def_List}, {Fun_Def}
-Def             = TYPE, Var, [{",", Var}]
+Def             = TYPE, Var, [{",", Var}] | FN, Fun_Name_List
 Fun_Def         = "function", FUN_TYPE, Fun_ID, "(", Fun_Var_List, ")", "declare", {Def} "do", {Exp}, "done"
 
+FN              = "fn"
 TYPE            = "int"
-FUN_TYPE        = TYPE | "void"
+FUN_TYPE        = TYPE | "void" | FN
 Var             = ID, {"[", Number, "]"}
+Var_List        = Var, {",", Var}
+Fun_Name_List   = Fun_ID, {",", Fun_ID}
 Fun_Var_List    = "void" | TYPE, Var, [{",", TYPE, Var}]
-Fun_Var         = TYPE, ID
+Fun_Var         = TYPE, ID | FN, Fun_ID
 
 Letter          = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
 digit           = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
@@ -21,12 +24,16 @@ String          = double_quote, {Letter}, double_quote
 LValue          = ID, {"[", (ID | Number), "]"}
 Fun_Value       = Fun_ID, "(", [(LValue | Number), [{",", (LValue | Number)}]], ")"
 Exp_List        = Exp, {Exp}
-Exp             = As_Exp, ";" | Op_Exp, ";" | Cond_Exp, ";" | If_Stmt | Lop_Stmt | "break", ";" | "continue", ";" | "return", [Op_Exp], ";" | Input_exp | Output_Exp
+Exp             = As_Exp, ";" | Op_Exp, ";" | Cond_Exp, ";" | If_Stmt | Lop_Stmt | "break", ";" | "continue", ";" | "return", [Op_Exp], ";" | Input_exp | Output_Exp | Fun_Def | Fas_Exp
 
-Input_Exp       = "_input(", String, ",", LList ")"
-Output_Exp      = "_output(", String, [",", List] ,")"
+List            = [LValue, Number, Fun_ID], {",", [lvalue, Number, Fun_ID]}
+LList           = ["&", LValue], {",", "&", LValue}
+
+Input_Exp       = "_input", "(", String, ",", LList ")"
+Output_Exp      = "_output", "(", String, [",", List] ,")"
 
 As_Exp          = LValue, "=", Op_Exp
+Fas_Exp         = Fun_ID, "=", [Fun_ID, Fun_Value]
 Cond_Exp        = Cond_Term, [{"||", Cond_Term}]
 Cond_Term       = Cond_Factor, [{"&&", Cond_Factor}]
 Cond_Factor     = "(", Cond_Exp, ")" | Op_Exp, ("<" | ">" | "==" | "!=" | "<=" | ">="), Op_Exp

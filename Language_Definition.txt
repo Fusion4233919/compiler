@@ -4,22 +4,26 @@ Def_List:       Def_List Def ";" |
 
 Fun_Def_List:   Fun_Def_List Fun_Def | 
 
-Def:            TYPE Var_List
+Def:            TYPE Var_List | FN Fun_Name_List
 
 Fun_Def:	    "function" FUN_TYPE Fun_ID "("Fun_Var_List")" "declare" Def_List "do" Exp_List "done"
 
 
 TYPE:		    "int" 
 
-FUN_TYPE:       TYPE | "void"
+FN:             "fn"
+
+FUN_TYPE:       TYPE | "void" | FN
 
 Var_List:	    Var_List"," Var | Var
 
 Var:		    Var"["Number"]" | ID
 
+Fun_Name_List   Fun_Name_List "," Fun_ID | Fun_ID
+
 Fun_Var_List:	Fun_Var_List"," Fun_Var | Fun_Var | "void"
 
-Fun_Var:	    TYPE ID
+Fun_Var:	    TYPE ID | FN Fun_ID
 
 LValue:         LValue "[" LValue "]" | LValue "["Number"]" | ID 
 
@@ -35,6 +39,9 @@ Exp:	        As_Exp ";" | Op_Exp ";" | Cond_Exp ";"
                 | If_Stmt | Lop_Stmt
                 | "break"";" | "continue"";" | "return" Op_Exp";" | "return" ";"
                 | Input_Exp | Output_Exp
+                | Fun_Def | Fas_Exp
+
+Fas_Exp:        Fun_ID "=" Fun_ID | Fun_ID "=" Fun_Value
 
 
 
@@ -65,6 +72,8 @@ Cond_Factor:	"("Cond_Exp")" | Op_Exp Cond_op Op_Exp
 
 Cond_op:	    "<" | ">" | "==" | "!=" | "<=" | ">="
 
+List:           List "," LValue | List "," Number | List "," Fun_ID
+                | LValue | Number | Fun_ID
 
 If_Stmt:	    "if" "("Cond_Exp")" "do" Exp_List "done"
 
