@@ -9,7 +9,7 @@ Def:            TYPE Var_List
 Fun_Def:	    "function" FUN_TYPE Fun_ID "("Fun_Var_List")" "declare" Def_List "do" Exp_List "done"
 
 
-TYPE:		    "int" | "string"
+TYPE:		    "int" 
 
 FUN_TYPE:       TYPE | "void"
 
@@ -19,38 +19,32 @@ Var:		    Var"["Number"]" | ID
 
 Fun_Var_List:	Fun_Var_List"," Fun_Var | Fun_Var | "void"
 
-Fun_Var:	    TYPE Var
+Fun_Var:	    TYPE ID
 
+LValue:         LValue "[" LValue "]" | LValue "["Number"]" | ID 
 
-Number:		    0|([1-9][0-9]*)
+Fun_Value:      Fun_ID "("List")" | Fun_ID "(" ")"
 
-String:         \"(\\.|[^"\\])*\"
+List:           List "," LValue | List "," Number | LValue | Number
 
-ID:		        ([A-Z]|[a-z])+
+LList           LList "," "&" LValue | "&" LValue
 
-Fun_ID:		    _([A-Z]|[a-z])+
+Exp_List:       Exp_List Exp | Exp
 
-
-
-Exp_List:	    Exp_List Exp | 
-
-Exp:	        Op_Exp ";" | As_Exp ";" | Cond_Exp ";"
+Exp:	        As_Exp ";" | Op_Exp ";" | Cond_Exp ";"
                 | If_Stmt | Lop_Stmt
                 | "break"";" | "continue"";" | "return" Op_Exp";" | "return" ";"
+                | Input_Exp | Output_Exp
 
 
-As_Exp:		    LValue = Op_Exp | LValue = String
+
+Input_Exp:      "_input" "(" String "," LList ")"
+
+Output_Exp:     "_output" "(" String "," List ")"
+                | "_output" "(" String ")"
 
 
-Cond_Exp:	    Cond_Exp "||" Cond_Term | Cond_Term 
-
-Cond_Term:  	Cond_Term "&&" Cond_Factor | Cond_Factor
-
-Cond_Factor:	"("Cond_Exp")" | Op_Exp Cond_op Op_Exp
-
-Cond_op:	    "<" | ">" | "==" | "!=" | "<=" | ">="
-
-
+As_Exp:		    LValue = Op_Exp 
 
 Op_Exp:		    Op_Exp Add_op Op_Term | Op_Term
 
@@ -62,16 +56,28 @@ Add_op:		    "+" | "-"
 
 Mul_op:		    "*" | "/" | "%"
 
-    
+
+Cond_Exp:	    Cond_Exp "||" Cond_Term | Cond_Term 
+
+Cond_Term:  	Cond_Term "&&" Cond_Factor | Cond_Factor
+
+Cond_Factor:	"("Cond_Exp")" | Op_Exp Cond_op Op_Exp
+
+Cond_op:	    "<" | ">" | "==" | "!=" | "<=" | ">="
+
 
 If_Stmt:	    "if" "("Cond_Exp")" "do" Exp_List "done"
 
 Lop_Stmt:	    "loop" "("Cond_Exp")" "do" Exp_List "done"
 
-Fun_Value:      Fun_ID "("List")"
 
-List:           List "," LValue | List "," Number | List "," String |
+Number:		    0|([1-9][0-9]*)
 
-LValue:         LValue "[" LValue "]" | LValue "["Number"]" | ID 
+String:         \"(\\.|[^"\\])*\"
+
+ID:		        ([A-Z]|[a-z])+
+
+Fun_ID:		    _([A-Z]|[a-z])+
+
 
 
