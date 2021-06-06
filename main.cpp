@@ -71,7 +71,7 @@ int main(int argc, const char *argv[])
     if (argc == 2) return 0;
     const char *option = argv[2];
     if (strcmp(option, "-e") == 0) {
-        system("/usr/local/llvm/12.0.0/bin/llc ./mhl.ll && gcc -o mhl -lm mhl.S");
+        system("/usr/local/llvm/12.0.0/bin/llc ./mhl.ll && /usr/bin/clang -o mhl -lm mhl.S");
     }
 #endif
     return 0;
