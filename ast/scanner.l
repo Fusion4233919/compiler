@@ -48,7 +48,6 @@
 "loop"                  return LOOP;
 "do"                    return DO;
 "done"                  return DONE;
-"function"              return FUNCTION;
 "declare"               return DECLARE;
 "break"                 return BREAK;
 "continue"              return CONTINUE;
@@ -56,6 +55,7 @@
 
 "int"                   return INT;     /* type */
 "void"                  return VOID;
+"fn"                    return FN;
 
 "_input"                return INPUT;
 "_output"               return OUTPUT;  /* IO */

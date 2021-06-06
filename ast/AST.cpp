@@ -165,12 +165,24 @@ void AST::BuildTable(Fun_attr *current_fun)
     {
         /* FUN_TYPE Fun_Var_List  Def_List Exp_List */
         this->dtype = this->children->at(0)->dtype;
-        if (funs.find(this->name) != funs.end())
+        if (current_fun != NULL)
         {
-            printf("Multiple definition of %s\n", this->name.c_str());
-            return;
+            if (current_fun->locfuns->find(this->name) != current_fun->locfuns->end())
+            {
+                printf("Multiple definition of %s\n", this->name.c_str());
+                return;
+            }
+            current_fun->locfuns->at(this->name) = new Fun_attr(this->name, this->dtype);
         }
-        funs[this->name] = new Fun_attr(this->name, this->dtype);
+        else
+        {
+            if (funs.find(this->name) != funs.end())
+            {
+                printf("Multiple definition of %s\n", this->name.c_str());
+                return;
+            }
+            funs[this->name] = new Fun_attr(this->name, this->dtype);
+        }
         this->children->at(1)->BuildTable(funs[this->name]);
         this->children->at(2)->BuildTable(funs[this->name]);
         break;
@@ -203,6 +215,21 @@ void AST::BuildTable(Fun_attr *current_fun)
         {
             for (int _ = 0; _ < this->child_num; _++)
             {
+                this->children->at(_)->BuildTable(current_fun);
+            }
+        }
+        if (this->name == "Exp_List")
+        {
+            for (int _ = 0; _ < this->child_num; _++)
+            {
+                this->children->at(_)->BuildTable(current_fun);
+            }
+        }
+        if (this->name == "Fun_Name_List")
+        {
+            for (int _ = 0; _ < this->child_num; _++)
+            {
+                this->children->at(_)->dtype = this->dtype;
                 this->children->at(_)->BuildTable(current_fun);
             }
         }

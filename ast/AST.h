@@ -50,6 +50,7 @@ typedef enum DataType
     vvoid,
     integer,
     string,
+    function,
 } DataType;
 
 typedef union Value
@@ -84,7 +85,7 @@ public:
         this->belong = NULL;
         this->dimention = NULL;
     }
-    ~Var_attr();
+    ~Var_attr(){delete this->dimention;}
 };
 
 class Fun_attr
@@ -93,7 +94,9 @@ public:
     std::string name;
     int argc;
     DataType rtype;
+    Fun_attr *belong;
     Vmap *locvars;
+    Fmap *locfuns;
     std::vector<std::pair<DataType, std::string> > *argv;
 
     Fun_attr(std::string name, DataType rtype)
@@ -101,10 +104,12 @@ public:
         this->name = name;
         this->argc = 0;
         this->rtype = rtype;
+        this->belong = NULL;
         this->locvars = new Vmap;
+        this->locfuns = new Fmap;
         this->argv = NULL;
     }
-    ~Fun_attr() { delete this->locvars; delete this->argv;}
+    ~Fun_attr() { delete this->locvars; delete this->argv; delete this->locfuns;}
 };
 
 class AST
