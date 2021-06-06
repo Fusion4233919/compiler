@@ -11,10 +11,14 @@ namespace gen {
         llvm::ArrayType* arrayType;
         std::string belong = "";
 
-        ValueWrapper(llvm::Value *value, DataType type, std::string belong = "") {
+        // TODO
+        bool isFunc = false;
+
+        ValueWrapper(llvm::Value *value, DataType type, std::string belong = "", bool isFunc = false) {
             this->value = value;
             this->type = type;
             this->belong = belong;
+            this->isFunc = isFunc;
         }
 
         ValueWrapper(llvm::Value *value, DataType type, std::vector<AST *> lenArray, llvm::ArrayType *arrayType) {
@@ -30,10 +34,18 @@ namespace gen {
     struct FunctionWrapper {
         llvm::Function *func = nullptr;
         DataType retType = DataType::vvoid;
+        llvm::Value *addr = nullptr;
+        bool isLocal = false;
 
         FunctionWrapper(llvm::Function *func, DataType retType) {
             this->func = func;
             this->retType = retType;
+        }
+
+        FunctionWrapper(llvm::Value *addr, DataType retType) {
+            this->addr = addr;
+            this->retType = retType;
+            isLocal = true;
         }
     };
     
@@ -48,7 +60,9 @@ namespace gen {
         if (Type == DataType::integer) {
             return llvm::IntegerType::getInt32Ty(llvmContext);
         } else {
-            // TODO: String?
+            // TODO mock int -> int type
+            std::vector<llvm::Type *> TypeList = { GetLLVMType(integer) };
+            return llvm::FunctionType::get(GetLLVMType(integer), TypeList, false);
         }
     }
 
@@ -123,8 +137,15 @@ namespace gen {
 
     static void CreateLocalVariable(std::string Name, DataType Type) {
         llvm::Type *Ty = GetLLVMType(Type);
-        llvm::Value *Value = irBuilder.CreateAlloca(Ty, nullptr, std::string(Name));
-        auto *wvalue = new ValueWrapper(Value, Type);
+        llvm::Value *Value;
+        ValueWrapper *wvalue = nullptr;
+        if (Type == function) {
+            Value = irBuilder.CreateAlloca(llvm::PointerType::get(Ty, 0), nullptr, std::string(Name));
+            wvalue = new ValueWrapper(Value, Type, "", true);
+        } else {
+            Value = irBuilder.CreateAlloca(Ty, nullptr, std::string(Name));
+            wvalue = new ValueWrapper(Value, Type);
+        }
         NamedLocalValues[std::string(Name)] = wvalue;
     }
 
@@ -170,10 +191,14 @@ namespace gen {
         auto *VarList = Def->children->at(1);
 
         for (auto* Var : *(VarList->children)) {
-            if (Var->child_num == 0) {
-                SingleLocalDeclGen(Var->name, Type);
+            if (Type == DataType::integer) {
+                if (Var->child_num == 0) {
+                    SingleLocalDeclGen(Var->name, Type);
+                } else {
+                    ArrayLocalDeclGen(Var->name, Type, Var->children);
+                }
             } else {
-                ArrayLocalDeclGen(Var->name, Type, Var->children);
+                SingleLocalDeclGen(Var->name, Type);
             }
         }
     }
@@ -427,7 +452,7 @@ namespace gen {
                     auto *Loaded = irBuilder.CreateLoad(LValue->value, "tmp");
                     ArgValues.push_back(Loaded);
                 } else {
-                    // TODO string?
+
                 }
             }
         }
@@ -451,8 +476,21 @@ namespace gen {
         }
     }
 
+
+    static FunctionWrapper *GetNamedFunc(std::string Name) {
+        auto FoundFunc = NamedFuncs.find(Name);
+        if (FoundFunc != NamedFuncs.end()) {
+            return FoundFunc->second;
+        }
+        auto FoundPtr = NamedLocalValues.find(Name);
+        if (FoundPtr != NamedLocalValues.end() && FoundPtr->second->isFunc) {
+            auto Loaded = irBuilder.CreateLoad(llvm::PointerType::get(GetLLVMType(function), 0), FoundPtr->second->value, "ldfunc");
+            return new FunctionWrapper(Loaded, integer);
+        }
+    }
+
     static ValueWrapper *CallGen(AST *Expr) {
-        auto *CalleeFunc = NamedFuncs[std::string(Expr->name)];
+        auto *CalleeFunc = GetNamedFunc(Expr->name);
 
         if (Expr->child_num == 0) {
             return new ValueWrapper(irBuilder.CreateCall(CalleeFunc->func), CalleeFunc->retType);
@@ -470,10 +508,20 @@ namespace gen {
                 auto *Loaded = irBuilder.CreateLoad(LValue->value, "tmp");
                 ArgValues.push_back(Loaded);
             } else {
-                // TODO string?
+                auto PassInto = GetNamedFunc(Arg->name);
+                if (PassInto->isLocal) {
+                    ArgValues.push_back(PassInto->addr);
+                } else {
+                    ArgValues.push_back(PassInto->func);
+                }
             }
         }
 
+        if (CalleeFunc->isLocal) {
+            std::vector<llvm::Type *> TypeList = { GetLLVMType(integer) };
+            auto CallType = llvm::FunctionType::get(GetLLVMType(integer), TypeList, false);
+            return new ValueWrapper(irBuilder.CreateCall(CallType, CalleeFunc->addr, ArgValues, "calltmp"), integer);
+        }
         if (CalleeFunc->retType == vvoid) {
             return new ValueWrapper(irBuilder.CreateCall(CalleeFunc->func, ArgValues), CalleeFunc->retType);
         }
@@ -567,7 +615,8 @@ namespace gen {
                 auto Type = FunVar->children->at(0)->dtype;
                 if (Type == DataType::integer) {
                     TypeVector.push_back(llvm::Type::getInt32Ty(llvmContext));
-                } else if (Type == DataType::string) {
+                } else if (Type == DataType::function) {
+                    TypeVector.push_back(llvm::PointerType::get(GetLLVMType(function), 0));
                 }
             }
         }

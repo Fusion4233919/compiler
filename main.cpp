@@ -63,8 +63,7 @@ int main(int argc, const char *argv[])
     fclose(file_in);
     //head->print();
     head->BuildTable(NULL);
-    if (head->CheckTable(NULL))
-        return 1;
+    if (head->CheckTable(NULL));
     showTable();
     gen::ProgramGen(head);
     return 0;
