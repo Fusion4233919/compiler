@@ -1,8 +1,8 @@
 /************************************
     Name:        parser.y 
-    Version:     v1.6
+    Version:     v2.1
     Modefied by: fusion
-                 2021-6-4 12:23
+                 2021-6-6 21:32
 ************************************/
 
 %{
@@ -34,13 +34,13 @@
 %token <token>  '=' '&'
 %token <token>  '(' ')' '[' ']' ',' ';'
 %token <token>  '+' '-' '*' '/' '%'
-%token <token>  IF LOOP DO DONE FUNCTION DECLARE BREAK CONTINUE RETURN 
-%token <token>  INT VOID 
+%token <token>  IF LOOP DO DONE DECLARE BREAK CONTINUE RETURN 
+%token <token>  INT VOID FUNCTION FN
 %token <token>  INPUT OUTPUT
 
 %type <node>    Program Def_List Fun_Def_List Fun_Def Def
-%type <node>    TYPE FUN_TYPE Var Var_List Fun_Var Fun_Var_List LValue Fun_Value List LList
-%type <node>    Exp_List Exp As_Exp If_Stmt Lop_Stmt Op_Exp Cond_Exp Input_Exp Output_Exp
+%type <node>    TYPE FUN_TYPE Var Var_List Fun_Var Fun_Var_List LValue Fun_Value List LList Fun_Name_List
+%type <node>    Exp_List Exp As_Exp If_Stmt Lop_Stmt Op_Exp Cond_Exp Input_Exp Output_Exp Fas_Exp
 %type <node>    Cond_Term Cond_Factor Cond_Op
 %type <node>    Op_Term Op_Factor Add_op Mul_op
 
@@ -62,6 +62,7 @@ Fun_Def_List    : Fun_Def_List Fun_Def {$$=$1; $$->Insert($2);}
                 ;
 
 Def             : TYPE Var_List {$$=new AST(Type::defi, "Def"); $$->Insert($1); $$->Insert($2);}
+                | FN Fun_Name_List {$$=new AST(Type::defi, "Def"); temp = new AST(Type::tydf, "fn"); temp->dtype=DataType::function; $$->Insert(temp); $$->Insert($2);}
                 ;
 
 Fun_Def         : FUNCTION FUN_TYPE Fun_ID '(' Fun_Var_List ')' DECLARE Def_List DO Exp_List DONE {$$=new AST(Type::func, $3); delete $3; $$->Insert($2); $$->Insert($5); $$->Insert($8); $$->Insert($10);}
@@ -72,6 +73,7 @@ TYPE            : INT {$$=new AST(Type::tydf, "int"); $$->dtype=DataType::intege
 
 FUN_TYPE        : TYPE {$$=$1;}
                 | VOID {$$=new AST(Type::tydf, "void"); $$->dtype=DataType::vvoid;}
+                | FN {$$=new AST(Type::tydf, "fn"); $$->dtype=DataType::function;}
                 ;
 
 Var_List        : Var_List ',' Var {$$=$1; $$->Insert($3);}
@@ -82,12 +84,17 @@ Var             : Var '[' Number ']' {$$->Insert(new AST($3));}
                 | ID {$$=new AST(Type::var, $1); delete $1;}
                 ;
 
+Fun_Name_List   : Fun_Name_List ',' Fun_ID {$$=$1; temp=new AST(Type::var, $3); delete $3; $$->Insert(temp);}
+                | Fun_ID {$$=new AST(Type::list, "Fun_Name_List"); temp=new AST(Type::var, $1); delete $1; $$->Insert(temp);}
+                ;
+
 Fun_Var_List    : Fun_Var_List ',' Fun_Var {$$=$1; $$->Insert($3);}
                 | Fun_Var {$$=new AST(Type::list, "Fun_Var_List"); $$->Insert($1);}
                 | VOID {$$=new AST(Type::list, "Fun_Var_List"); temp=new AST(Type::tydf, "void"); temp->dtype=DataType::vvoid; $$->Insert(temp);}
                 ;
 
 Fun_Var         : TYPE ID {$$=new AST(Type::fvar, $2); delete $2; $$->Insert($1); }
+                | FN Fun_ID {$$=new AST(Type::fvar, $2); delete $2; temp=new AST(Type::tydf, "fn"); temp->dtype=DataType::function; $$->Insert(temp); }
                 ;
 
 LValue          : LValue '[' LValue ']' {$$->Insert($3);}
@@ -101,8 +108,10 @@ Fun_Value       : Fun_ID '(' List ')' {$$=new AST(Type::expr, $1); delete $1; $$
 
 List            : List ',' LValue {$$=$1; $$->Insert($3);}
                 | List ',' Number {$$=$1; $$->Insert(new AST($3));}
+                | List ',' Fun_ID {$$=$1; temp=new AST(Type::var, $3); delete $3; $$->Insert(temp); $$->Insert(temp);}
                 | LValue {$$=new AST(Type::list, "List"); $$->Insert($1);}
                 | Number {$$=new AST(Type::list, "List"); $$->Insert(new AST($1));}
+                | Fun_ID {$$=new AST(Type::list, "List"); temp=new AST(Type::var, $1); delete $1; $$->Insert(temp);}
                 ;
 
 LList           : LList ',' '&' LValue {$$=$1; $$->Insert($4);}
@@ -121,9 +130,12 @@ Exp             : As_Exp ';' {$$=$1;}
                 | BREAK ';' {$$=new AST(Type::expr, "break");}
                 | CONTINUE ';' {$$=new AST(Type::expr, "continue");}
                 | RETURN Op_Exp ';' {$$=new AST(Type::expr, "return"); $$->Insert($2);}
+                | RETURN Fun_ID ';' {$$=new AST(Type::expr, "return"); temp=new AST(Type::var, $2); delete $2; $$->Insert(temp);}
                 | RETURN ';' {$$=new AST(Type::expr, "return");}
                 | Input_Exp ';' {$$=$1;}
                 | Output_Exp ';' {$$=$1;}
+                | Fun_Def {$$=$1;}
+                | Fas_Exp ';' {$$=$1;}
                 ;
 
 Input_Exp       : INPUT '(' String ',' LList ')' {$$=new AST(Type::expr, "scanf"); $$->Insert(new AST($3)); $$->Insert($5);}
@@ -134,6 +146,10 @@ Output_Exp      : OUTPUT '(' String ',' List ')' {$$=new AST(Type::expr, "printf
                 ;
 
 As_Exp          : LValue '=' Op_Exp {$$=new AST(Type::expr, "As_Exp"); $$->Insert($1); $$->Insert($3);}
+                ;
+
+Fas_Exp         : Fun_ID '=' Fun_ID {$$=new AST(Type::expr, "Fas_Exp"); temp=new AST(Type::var, $1); delete $1; $$->Insert(temp); temp=new AST(Type::var, $3); delete $3; $$->Insert(temp);}
+                | Fun_ID '=' Fun_Value {$$=new AST(Type::expr, "Fas_Exp"); temp=new AST(Type::var, $1); delete $1; $$->Insert(temp); $$->Insert($3);}
                 ;
 
 Op_Exp          : Op_Exp Add_op Op_Term {$$=$1; $$->Insert($2); $$->Insert($3);}

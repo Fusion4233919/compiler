@@ -1,8 +1,8 @@
 /************************************
     Name:        AST.cpp 
-    Version:     v3.0
+    Version:     v4.2
     Modefied by: fusion
-                 2021-6-5 14:15
+                 2021-6-6 21:32
 ************************************/
 
 #include "AST.h"
@@ -158,6 +158,11 @@ void AST::BuildTable(Fun_attr *current_fun)
         /* TYPE Var_List */
         this->children->at(1)->dtype = this->children->at(0)->dtype;
         this->dtype = this->children->at(0)->dtype;
+        if (this->dtype == DataType::function && NULL == current_fun)
+        {
+            printf("Global fn vars are not allow\n");
+            return;
+        }
         this->children->at(1)->BuildTable(current_fun);
         break;
     }
@@ -165,14 +170,31 @@ void AST::BuildTable(Fun_attr *current_fun)
     {
         /* FUN_TYPE Fun_Var_List  Def_List Exp_List */
         this->dtype = this->children->at(0)->dtype;
-        if (funs.find(this->name) != funs.end())
+        if (current_fun != NULL)
         {
-            printf("Multiple definition of %s\n", this->name.c_str());
-            return;
+            if (current_fun->locfuns->find(this->name) != current_fun->locfuns->end())
+            {
+                printf("Multiple definition of %s\n", this->name.c_str());
+                return;
+            }
+            (*(current_fun->locfuns))[this->name] = new Fun_attr(this->name, this->dtype);
+            (*(current_fun->locfuns))[this->name]->belong = current_fun;
+            this->children->at(1)->BuildTable(current_fun->locfuns->at(this->name));
+            this->children->at(2)->BuildTable(current_fun->locfuns->at(this->name));
+            this->children->at(3)->BuildTable(current_fun->locfuns->at(this->name));
         }
-        funs[this->name] = new Fun_attr(this->name, this->dtype);
-        this->children->at(1)->BuildTable(funs[this->name]);
-        this->children->at(2)->BuildTable(funs[this->name]);
+        else
+        {
+            if (funs.find(this->name) != funs.end())
+            {
+                printf("Multiple definition of %s\n", this->name.c_str());
+                return;
+            }
+            funs[this->name] = new Fun_attr(this->name, this->dtype);
+            this->children->at(1)->BuildTable(funs[this->name]);
+            this->children->at(2)->BuildTable(funs[this->name]);
+            this->children->at(3)->BuildTable(funs[this->name]);
+        }
         break;
     }
     case Type::list:
@@ -203,6 +225,22 @@ void AST::BuildTable(Fun_attr *current_fun)
         {
             for (int _ = 0; _ < this->child_num; _++)
             {
+                this->children->at(_)->BuildTable(current_fun);
+            }
+        }
+        if (this->name == "Exp_List")
+        {
+            for (int _ = 0; _ < this->child_num; _++)
+            {
+                if (this->children->at(_)->ntype == Type::func)
+                    this->children->at(_)->BuildTable(current_fun);
+            }
+        }
+        if (this->name == "Fun_Name_List")
+        {
+            for (int _ = 0; _ < this->child_num; _++)
+            {
+                this->children->at(_)->dtype = this->dtype;
                 this->children->at(_)->BuildTable(current_fun);
             }
         }
@@ -286,7 +324,20 @@ bool AST::CheckTable(Fun_attr *current_fun)
     }
     case Type::func:
     {
-        this->children->at(3)->CheckTable(funs[this->name]);
+        if (this->child_num == 0)
+        {
+            if (current_fun->locfuns->find(this->name) == current_fun->locfuns->end())
+            {
+                printf("No definition of %s\n", this->name.c_str());
+                return error = true;
+            }
+            return error;
+        }
+
+        if (current_fun != NULL)
+            this->children->at(3)->CheckTable(current_fun->locfuns->at(this->name));
+        else
+            this->children->at(3)->CheckTable(funs[this->name]);
         break;
     }
     case Type::list:
@@ -310,6 +361,15 @@ bool AST::CheckTable(Fun_attr *current_fun)
             for (int _ = 0; _ < this->child_num; _++)
             {
                 this->children->at(_)->CheckTable(current_fun);
+                if (this->children->at(_)->ntype == Type::var)
+                {
+                    this->children->at(_)->dtype = DataType::function;
+                    if (current_fun->locfuns->find(this->children->at(_)->name) == current_fun->locfuns->end() && funs.find(this->children->at(_)->name) == funs.end())
+                    {
+                        printf("No implement of %s\n", this->children->at(_)->name.c_str());
+                        return error = true;
+                    }
+                }
             }
         }
         if (this->name == "LList")
@@ -324,9 +384,16 @@ bool AST::CheckTable(Fun_attr *current_fun)
     case Type::lvalue:
     {
         temp = NULL;
-        if (current_fun->locvars->find(this->name) != current_fun->locvars->end())
+        if (current_fun != NULL && current_fun->locvars->find(this->name) != current_fun->locvars->end())
         {
             temp = current_fun->locvars->find(this->name)->second;
+        }
+        else if (current_fun->belong != NULL && current_fun->belong->locvars->find(this->name) != current_fun->belong->locvars->end())
+        {
+            if (current_fun->parents_argv == NULL)
+                current_fun->parents_argv = new std::vector<std::pair<std::string, Var_attr *>>;
+            temp = current_fun->belong->locvars->find(this->name)->second;
+            current_fun->parents_argv->push_back(std::pair<std::string, Var_attr *>(this->name, temp));
         }
         else if (glovars.find(this->name) != glovars.end())
         {
@@ -357,12 +424,26 @@ bool AST::CheckTable(Fun_attr *current_fun)
     {
         if (this->name[0] == '_')
         {
-            if (funs.find(this->name) == funs.end())
+            Fun_attr *temp = NULL;
+            if (current_fun->locvars->find(this->name) != current_fun->locvars->end())
             {
-                printf("No definition of %s\n", this->name.c_str());
+                return error;
+            }
+
+            if (current_fun->locfuns->find(this->name) != current_fun->locfuns->end())
+            {
+                temp = current_fun->locfuns->find(this->name)->second;
+            }
+            else if (funs.find(this->name) != funs.end())
+            {
+                temp = funs.find(this->name)->second;
+            }
+            else
+            {
+                printf("No definition of function %s\n", this->name.c_str());
                 return error = true;
             }
-            Fun_attr *temp = funs.find(this->name)->second;
+
             this->dtype = temp->rtype;
             if (this->child_num == 0)
             {
@@ -400,12 +481,20 @@ bool AST::CheckTable(Fun_attr *current_fun)
                     return error = true;
                 }
             }
-            else
+            else if (this->children->at(0)->ntype == Type::expr)
             {
                 this->children->at(0)->CheckTable(current_fun);
                 if (current_fun->rtype != this->children->at(0)->dtype)
                 {
                     printf("Return type not match of %s\n", current_fun->name.c_str());
+                    return error = true;
+                }
+            }
+            else if (this->children->at(0)->ntype == Type::var)
+            {
+                if (current_fun->locfuns->find(this->children->at(0)->name) == current_fun->locfuns->end())
+                {
+                    printf("Return function %s not exist\n", this->children->at(0)->name.c_str());
                     return error = true;
                 }
             }
@@ -419,6 +508,19 @@ bool AST::CheckTable(Fun_attr *current_fun)
             if (this->child_num > 1)
             {
                 this->children->at(1)->CheckTable(current_fun);
+            }
+        }
+        else if (this->name == "Fas_Exp")
+        {
+            this->children->at(1)->CheckTable(current_fun);
+            if (this->children->at(1)->ntype == Type::var)
+            {
+                if (current_fun->locfuns->find(this->children->at(1)->name) == current_fun->locfuns->end())
+                {
+                    printf("No implement of %s\n", this->children->at(1)->name.c_str());
+                    return error = true;
+                }
+                (*(current_fun->locfuns))[this->children->at(0)->name] = (*(current_fun->locfuns))[this->children->at(1)->name];
             }
         }
         else if (this->name == "As_Exp")

@@ -1,8 +1,8 @@
 /************************************
     Name:        AST.h 
-    Version:     v3.0
+    Version:     v4.1
     Modefied by: fusion
-                 2021-6-5 14:20
+                 2021-6-6 12:47
 ************************************/
 
 #ifndef AST_H
@@ -50,6 +50,7 @@ typedef enum DataType
     vvoid,
     integer,
     string,
+    function,
 } DataType;
 
 typedef union Value
@@ -84,7 +85,7 @@ public:
         this->belong = NULL;
         this->dimention = NULL;
     }
-    ~Var_attr();
+    ~Var_attr() { delete this->dimention; }
 };
 
 class Fun_attr
@@ -93,18 +94,30 @@ public:
     std::string name;
     int argc;
     DataType rtype;
+    Fun_attr *belong;
     Vmap *locvars;
-    std::vector<std::pair<DataType, std::string> > *argv;
+    Fmap *locfuns;
+    std::vector<std::pair<DataType, std::string>> *argv;
+    std::vector<std::pair<std::string, Var_attr *>> *parents_argv;
 
     Fun_attr(std::string name, DataType rtype)
     {
         this->name = name;
         this->argc = 0;
         this->rtype = rtype;
+        this->belong = NULL;
         this->locvars = new Vmap;
+        this->locfuns = new Fmap;
         this->argv = NULL;
+        this->parents_argv = NULL;
     }
-    ~Fun_attr() { delete this->locvars; delete this->argv;}
+    ~Fun_attr()
+    {
+        delete this->locvars;
+        delete this->locfuns;
+        delete this->argv;
+        delete this->parents_argv;
+    }
 };
 
 class AST

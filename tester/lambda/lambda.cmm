@@ -1,0 +1,116 @@
+int y ;
+int xx ;
+int N ;
+int Nn ;
+int array[5] ;
+int filtered[5] ;
+
+function int _multTwo(int x)
+declare
+    int aaa ;
+do
+    aaa = 3 * x ;
+    return aaa ;
+done
+
+function int _even(int x)
+declare
+    int t ;
+do
+    t = x % 2 ;
+    if (t == 0)
+    do
+        return 1 ;
+    done
+    return 0 ;
+done
+
+function void _closureTest(void)
+declare
+    int x ;
+    int ret ;
+do
+    x = 1 ;
+    function int _closure(int y)
+    declare
+        int tmp ;
+    do
+        tmp = x + y ;
+        return tmp ;
+    done
+
+    x = 2 ;
+    ret = _closure(4) ;
+    _output("closure test : %d\n", ret) ;
+done
+
+function void _map(fn _lambda)
+declare
+    int t ;
+do
+    t = 0 ;
+    loop (t < N)
+    do
+        array[t] = _lambda(array[t]) ;
+        t = t + 1 ;
+    done
+    return ;
+done
+
+function void _filter(fn _lambda)
+declare
+    int t ;
+    int idx ;
+    int flag ;
+do
+    idx = 0 ;
+    t = 0 ;
+    loop (t < N)
+    do
+        flag = _lambda(array[t]) ;
+        if (flag != 0)
+        do
+            filtered[idx] = array[t] ;
+            idx = idx + 1 ;
+        done
+        t = t + 1 ;
+    done
+    Nn = idx ;
+done
+
+
+function int _main(void)
+declare
+    int qq ;
+do
+    _closureTest() ;
+    qq = _closure(8) ;
+    _output("closure indeed escaped : %d\n", qq) ;
+
+    N = 5 ;
+    qq = 0 ;
+    loop (qq < N)
+    do
+        array[qq] = qq + 1 ;
+        qq = qq + 1 ;
+    done
+    _map(_multTwo) ;
+    _output("map test : \n") ;
+    qq = 0 ;
+    loop (qq < N)
+    do
+        _output("%d ", array[qq]) ;
+        qq = qq + 1 ;
+    done
+
+    _filter(_even) ;
+    _output("\nfilter test : \n") ;
+    qq = 0 ;
+    loop (qq < Nn)
+    do
+        _output("%d ", filtered[qq]) ;
+        qq = qq + 1 ;
+    done
+
+    return 0 ;
+done
