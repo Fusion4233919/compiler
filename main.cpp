@@ -32,10 +32,17 @@ void showTable(void)
         }
         for (auto __ = _->second->locfuns->begin(); __ != _->second->locfuns->end(); __++)
         {
-            printf("%s %s %d \n", __->first.c_str(), __->second->name.c_str(), __->second->rtype);
+            printf("\t%s %s %d \n", __->first.c_str(), __->second->name.c_str(), __->second->rtype);
             for (auto ___ = __->second->locvars->begin(); ___ != __->second->locvars->end(); ___++)
             {
-                printf("\t%s %s %d %d\n", ___->first.c_str(), ___->second->name.c_str(), ___->second->dtype, ___->second->dim);
+                printf("\t\t%s %s %d %d\n", ___->first.c_str(), ___->second->name.c_str(), ___->second->dtype, ___->second->dim);
+            }
+            if (__->second->parents_argv != NULL)
+            {
+                for (auto ___ = __->second->parents_argv->begin(); ___ != __->second->parents_argv->end(); ___++)
+                {
+                    printf("\t\t(p) %s %s %d %d\n", ___->first.c_str(), ___->second->name.c_str(), ___->second->dtype, ___->second->dim);
+                }
             }
         }
     }
@@ -55,8 +62,8 @@ int main(int argc, const char *argv[])
     fclose(file_in);
     //head->print();
     head->BuildTable(NULL);
-    showTable();
     if (head->CheckTable(NULL))
         return 1;
+    showTable();
     return 0;
 }

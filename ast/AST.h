@@ -1,8 +1,8 @@
 /************************************
     Name:        AST.h 
-    Version:     v4.0
+    Version:     v4.1
     Modefied by: fusion
-                 2021-6-6 11:37
+                 2021-6-6 12:47
 ************************************/
 
 #ifndef AST_H
@@ -98,6 +98,7 @@ public:
     Vmap *locvars;
     Fmap *locfuns;
     std::vector<std::pair<DataType, std::string>> *argv;
+    std::vector<std::pair<std::string, Var_attr *>> *parents_argv;
 
     Fun_attr(std::string name, DataType rtype)
     {
@@ -108,12 +109,14 @@ public:
         this->locvars = new Vmap;
         this->locfuns = new Fmap;
         this->argv = NULL;
+        this->parents_argv = NULL;
     }
     ~Fun_attr()
     {
         delete this->locvars;
-        delete this->argv;
         delete this->locfuns;
+        delete this->argv;
+        delete this->parents_argv;
     }
 };
 

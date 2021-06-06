@@ -1,8 +1,8 @@
 /************************************
     Name:        AST.cpp 
-    Version:     v4.0
+    Version:     v4.1
     Modefied by: fusion
-                 2021-6-6 11:37
+                 2021-6-6 12:47
 ************************************/
 
 #include "AST.h"
@@ -178,6 +178,7 @@ void AST::BuildTable(Fun_attr *current_fun)
                 return;
             }
             (*(current_fun->locfuns))[this->name] = new Fun_attr(this->name, this->dtype);
+            (*(current_fun->locfuns))[this->name]->belong = current_fun;
             this->children->at(1)->BuildTable(current_fun->locfuns->at(this->name));
             this->children->at(2)->BuildTable(current_fun->locfuns->at(this->name));
             this->children->at(3)->BuildTable(current_fun->locfuns->at(this->name));
@@ -374,13 +375,16 @@ bool AST::CheckTable(Fun_attr *current_fun)
     case Type::lvalue:
     {
         temp = NULL;
-        if (current_fun->locvars->find(this->name) != current_fun->locvars->end())
+        if (current_fun != NULL && current_fun->locvars->find(this->name) != current_fun->locvars->end())
         {
             temp = current_fun->locvars->find(this->name)->second;
         }
-        else if (current_fun->belong->locvars->find(this->name) != current_fun->belong->locvars->end())
+        else if (current_fun->belong != NULL && current_fun->belong->locvars->find(this->name) != current_fun->belong->locvars->end())
         {
+            if (current_fun->parents_argv == NULL)
+                current_fun->parents_argv = new std::vector<std::pair<std::string, Var_attr *>>;
             temp = current_fun->belong->locvars->find(this->name)->second;
+            current_fun->parents_argv->push_back(std::pair<std::string, Var_attr *>(this->name, temp));
         }
         else if (glovars.find(this->name) != glovars.end())
         {
