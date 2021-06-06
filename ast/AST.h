@@ -1,8 +1,8 @@
 /************************************
     Name:        AST.h 
-    Version:     v3.0
+    Version:     v4.0
     Modefied by: fusion
-                 2021-6-5 14:20
+                 2021-6-6 11:37
 ************************************/
 
 #ifndef AST_H
@@ -85,7 +85,7 @@ public:
         this->belong = NULL;
         this->dimention = NULL;
     }
-    ~Var_attr(){delete this->dimention;}
+    ~Var_attr() { delete this->dimention; }
 };
 
 class Fun_attr
@@ -97,7 +97,7 @@ public:
     Fun_attr *belong;
     Vmap *locvars;
     Fmap *locfuns;
-    std::vector<std::pair<DataType, std::string> > *argv;
+    std::vector<std::pair<DataType, std::string>> *argv;
 
     Fun_attr(std::string name, DataType rtype)
     {
@@ -109,7 +109,12 @@ public:
         this->locfuns = new Fmap;
         this->argv = NULL;
     }
-    ~Fun_attr() { delete this->locvars; delete this->argv; delete this->locfuns;}
+    ~Fun_attr()
+    {
+        delete this->locvars;
+        delete this->argv;
+        delete this->locfuns;
+    }
 };
 
 class AST

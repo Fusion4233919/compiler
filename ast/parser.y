@@ -1,8 +1,8 @@
 /************************************
     Name:        parser.y 
-    Version:     v1.6
+    Version:     v2.0
     Modefied by: fusion
-                 2021-6-4 12:23
+                 2021-6-6 11:37
 ************************************/
 
 %{
@@ -35,7 +35,7 @@
 %token <token>  '(' ')' '[' ']' ',' ';'
 %token <token>  '+' '-' '*' '/' '%'
 %token <token>  IF LOOP DO DONE DECLARE BREAK CONTINUE RETURN 
-%token <token>  INT VOID FN
+%token <token>  INT VOID FUNCTION FN
 %token <token>  INPUT OUTPUT
 
 %type <node>    Program Def_List Fun_Def_List Fun_Def Def
@@ -65,7 +65,7 @@ Def             : TYPE Var_List {$$=new AST(Type::defi, "Def"); $$->Insert($1); 
                 | FN Fun_Name_List {$$=new AST(Type::defi, "Def"); temp = new AST(Type::tydf, "fn"); temp->dtype=DataType::function; $$->Insert(temp); $$->Insert($2);}
                 ;
 
-Fun_Def         : FUN_TYPE Fun_ID '(' Fun_Var_List ')' DECLARE Def_List DO Exp_List DONE {$$=new AST(Type::func, $2); delete $2; $$->Insert($1); $$->Insert($4); $$->Insert($7); $$->Insert($9);}
+Fun_Def         : FUNCTION FUN_TYPE Fun_ID '(' Fun_Var_List ')' DECLARE Def_List DO Exp_List DONE {$$=new AST(Type::func, $3); delete $3; $$->Insert($2); $$->Insert($5); $$->Insert($8); $$->Insert($10);}
                 ;
 
 TYPE            : INT {$$=new AST(Type::tydf, "int"); $$->dtype=DataType::integer;}

@@ -18,7 +18,7 @@ Fmap funs;
 
 void showTable(void)
 {
-    for(auto _ = glovars.begin(); _ != glovars.end(); _++)
+    for (auto _ = glovars.begin(); _ != glovars.end(); _++)
     {
         printf("%s %s %d %d\n", _->first.c_str(), _->second->name.c_str(), _->second->dtype, _->second->dim);
     }
@@ -29,6 +29,14 @@ void showTable(void)
         for (auto __ = _->second->locvars->begin(); __ != _->second->locvars->end(); __++)
         {
             printf("\t%s %s %d %d\n", __->first.c_str(), __->second->name.c_str(), __->second->dtype, __->second->dim);
+        }
+        for (auto __ = _->second->locfuns->begin(); __ != _->second->locfuns->end(); __++)
+        {
+            printf("%s %s %d \n", __->first.c_str(), __->second->name.c_str(), __->second->rtype);
+            for (auto ___ = __->second->locvars->begin(); ___ != __->second->locvars->end(); ___++)
+            {
+                printf("\t%s %s %d %d\n", ___->first.c_str(), ___->second->name.c_str(), ___->second->dtype, ___->second->dim);
+            }
         }
     }
 }
