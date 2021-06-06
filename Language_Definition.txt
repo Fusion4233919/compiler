@@ -21,13 +21,15 @@ Fun_Var_List:	Fun_Var_List"," Fun_Var | Fun_Var | "void"
 
 Fun_Var:	    TYPE ID
 
-LValue:         LValue "[" LValue "]" | LValue "["Number"]" | ID 
 
-Fun_Value:      Fun_ID "("List")" | Fun_ID "(" ")"
+Number:		    0|([1-9][0-9]*)
 
-List:           List "," LValue | List "," Number | LValue | Number
+String:         \"(\\.|[^"\\])*\"
 
-LList           LList "," "&" LValue | "&" LValue
+ID:		        ([A-Z]|[a-z])+
+
+Fun_ID:		    _([A-Z]|[a-z])+
+
 
 Exp_List:       Exp_List Exp | Exp
 
@@ -36,8 +38,6 @@ Exp:	        As_Exp ";" | Op_Exp ";" | Cond_Exp ";"
                 | "break"";" | "continue"";" | "return" Op_Exp";" | "return" ";"
                 | Input_Exp | Output_Exp
 
-
-
 Input_Exp:      "_input" "(" String "," LList ")"
 
 Output_Exp:     "_output" "(" String "," List ")"
@@ -45,16 +45,6 @@ Output_Exp:     "_output" "(" String "," List ")"
 
 
 As_Exp:		    LValue = Op_Exp 
-
-Op_Exp:		    Op_Exp Add_op Op_Term | Op_Term
-
-Op_Term:	    Op_Term Mul_op Op_Factor | Op_Factor
-
-Op_Factor:	    "("Op_Exp")" | LValue | Fun_Value | Number
-
-Add_op:		    "+" | "-" 
-
-Mul_op:		    "*" | "/" | "%"
 
 
 Cond_Exp:	    Cond_Exp "||" Cond_Term | Cond_Term 
@@ -66,16 +56,31 @@ Cond_Factor:	"("Cond_Exp")" | Op_Exp Cond_op Op_Exp
 Cond_op:	    "<" | ">" | "==" | "!=" | "<=" | ">="
 
 
+
+Op_Exp:		    Op_Exp Add_op Op_Term | Op_Term
+
+Op_Term:	    Op_Term Mul_op Op_Factor | Op_Factor
+
+Op_Factor:	    "("Op_Exp")" | LValue | Fun_Value | Number
+
+Add_op:		    "+" | "-" 
+
+Mul_op:		    "*" | "/" | "%"
+
+    
+
 If_Stmt:	    "if" "("Cond_Exp")" "do" Exp_List "done"
 
 Lop_Stmt:	    "loop" "("Cond_Exp")" "do" Exp_List "done"
 
+LValue:         LValue "[" LValue "]" | LValue "[" Number "]" | ID
 
-Number:		    0|([1-9][0-9]*)
+Fun_Value:      Fun_ID "("List")" | Fun_ID "(" ")"
 
-String:         \"(\\.|[^"\\])*\"
+List:           List "," LValue | List "," Number | LValue | Number
 
-ID:		        ([A-Z]|[a-z])+
+LList           LList "," "&" LValue | "&" LValue
 
-Fun_ID:		    _([A-Z]|[a-z])+
+
+
 
