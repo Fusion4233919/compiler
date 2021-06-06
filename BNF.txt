@@ -1,9 +1,15 @@
 Program         = {Def}, {Fun_Def}
-Fun_Def         = "function", FUN_TYPE, Fun_ID, "(", Fun_Var_List, ")", "declare", {Def} "do", {Exp}, "done"
-Fun_Var_List    = "void" | TYPE, Var, [{",", TYPE, Var}]
+Def_List        = {Def_List}, {Def}, {";"} |
+Fun_Def_List    = {Fun_Def_List}, {Fun_Def}
 Def             = TYPE, Var, [{",", Var}]
-TYPE            = "int" | "string"
+Fun_Def         = "function", FUN_TYPE, Fun_ID, "(", Fun_Var_List, ")", "declare", {Def} "do", {Exp}, "done"
+
+TYPE            = "int"
+FUN_TYPE        = TYPE | "void"
 Var             = ID, {"[", Number, "]"}
+Fun_Var_List    = "void" | TYPE, Var, [{",", TYPE, Var}]
+Fun_Var         = TYPE, ID
+
 Letter          = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
 digit           = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
 digit_with_zero = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
@@ -11,9 +17,15 @@ ID              = Letter, {Letter}
 Fun_ID          = "_", Letter, {Letter}
 Number          = ["-"], ("0" | digit, {digit_with_zero} | "'", (Letter | "\", "n" | "\", "r" | "\", "t"), "'")
 String          = double_quote, {Letter}, double_quote
+
 LValue          = ID, {"[", (ID | Number), "]"}
 Fun_Value       = Fun_ID, "(", [(LValue | Number), [{",", (LValue | Number)}]], ")"
-Exp             = As_Exp, ";" | Op_Exp, ";" | Cond_Exp, ";" | If_Stmt | Lop_Stmt | "break", ";" | "continue", ";" | "return", [Op_Exp], ";"
+Exp_List        = Exp, {Exp}
+Exp             = As_Exp, ";" | Op_Exp, ";" | Cond_Exp, ";" | If_Stmt | Lop_Stmt | "break", ";" | "continue", ";" | "return", [Op_Exp], ";" | Input_exp | Output_Exp
+
+Input_Exp       = "_input(", String, ",", LList ")"
+Output_Exp      = "_output(", String, [",", List] ,")"
+
 As_Exp          = LValue, "=", Op_Exp
 Cond_Exp        = Cond_Term, [{"||", Cond_Term}]
 Cond_Term       = Cond_Factor, [{"&&", Cond_Factor}]
