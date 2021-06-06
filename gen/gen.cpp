@@ -453,8 +453,12 @@ namespace gen {
 
     static ValueWrapper *CallGen(AST *Expr) {
         auto *CalleeFunc = NamedFuncs[std::string(Expr->name)];
-        auto *ArgList = Expr->children->at(0);
 
+        if (Expr->child_num == 0) {
+            return new ValueWrapper(irBuilder.CreateCall(CalleeFunc->func), CalleeFunc->retType);
+        }
+
+        auto *ArgList = Expr->children->at(0);
         std::vector<llvm::Value *> ArgValues;
         for (auto *Arg : *(ArgList->children)) {
             if (Arg->ntype == Type::cconst && Arg->dtype == DataType::integer) {
