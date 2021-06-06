@@ -73,6 +73,7 @@ TYPE            : INT {$$=new AST(Type::tydf, "int"); $$->dtype=DataType::intege
 
 FUN_TYPE        : TYPE {$$=$1;}
                 | VOID {$$=new AST(Type::tydf, "void"); $$->dtype=DataType::vvoid;}
+                | FN {$$=new AST(Type::tydf, "fn"); $$->dtype=DataType::function;}
                 ;
 
 Var_List        : Var_List ',' Var {$$=$1; $$->Insert($3);}
@@ -93,6 +94,7 @@ Fun_Var_List    : Fun_Var_List ',' Fun_Var {$$=$1; $$->Insert($3);}
                 ;
 
 Fun_Var         : TYPE ID {$$=new AST(Type::fvar, $2); delete $2; $$->Insert($1); }
+                | FN Fun_ID {$$=new AST(Type::fvar, $2); delete $2; temp=new AST(Type::tydf, "fn"); temp->dtype=DataType::function; $$->Insert(temp); }
                 ;
 
 LValue          : LValue '[' LValue ']' {$$->Insert($3);}
@@ -126,6 +128,7 @@ Exp             : As_Exp ';' {$$=$1;}
                 | BREAK ';' {$$=new AST(Type::expr, "break");}
                 | CONTINUE ';' {$$=new AST(Type::expr, "continue");}
                 | RETURN Op_Exp ';' {$$=new AST(Type::expr, "return"); $$->Insert($2);}
+                | RETURN Fun_ID ';' {$$=new AST(Type::expr, "return"); temp=new AST(Type::var, $2); delete $2; $$->Insert(temp);}
                 | RETURN ';' {$$=new AST(Type::expr, "return");}
                 | Input_Exp ';' {$$=$1;}
                 | Output_Exp ';' {$$=$1;}
@@ -143,8 +146,8 @@ Output_Exp      : OUTPUT '(' String ',' List ')' {$$=new AST(Type::expr, "printf
 As_Exp          : LValue '=' Op_Exp {$$=new AST(Type::expr, "As_Exp"); $$->Insert($1); $$->Insert($3);}
                 ;
 
-Fas_Exp         : Fun_ID '=' Fun_ID '(' ')' {$$=new AST(Type::expr, "Fas_Exp"); temp=new AST(Type::var, $1); delete $1; $$->Insert(temp); temp=new AST(Type::func, $3); delete $3; $$->Insert(temp);}
-                | Fun_ID '=' Fun_ID {$$=new AST(Type::expr, "Fas_Exp"); temp=new AST(Type::var, $1); delete $1; $$->Insert(temp); temp=new AST(Type::var, $3); delete $3; $$->Insert(temp);}
+Fas_Exp         : Fun_ID '=' Fun_ID {$$=new AST(Type::expr, "Fas_Exp"); temp=new AST(Type::var, $1); delete $1; $$->Insert(temp); temp=new AST(Type::var, $3); delete $3; $$->Insert(temp);}
+                | Fun_ID '=' Fun_Value {$$=new AST(Type::expr, "Fas_Exp"); temp=new AST(Type::var, $1); delete $1; $$->Insert(temp); $$->Insert($3);}
                 ;
 
 Op_Exp          : Op_Exp Add_op Op_Term {$$=$1; $$->Insert($2); $$->Insert($3);}

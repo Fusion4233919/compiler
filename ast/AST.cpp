@@ -467,12 +467,20 @@ bool AST::CheckTable(Fun_attr *current_fun)
                     return error = true;
                 }
             }
-            else
+            else if (this->children->at(0)->ntype == Type::expr)
             {
                 this->children->at(0)->CheckTable(current_fun);
                 if (current_fun->rtype != this->children->at(0)->dtype)
                 {
                     printf("Return type not match of %s\n", current_fun->name.c_str());
+                    return error = true;
+                }
+            }
+            else if (this->children->at(0)->ntype == Type::var)
+            {
+                if (current_fun->locfuns->find(this->children->at(0)->name) == current_fun->locfuns->end())
+                {
+                    printf("Return function %s not exist\n", this->children->at(0)->name.c_str());
                     return error = true;
                 }
             }
@@ -491,10 +499,6 @@ bool AST::CheckTable(Fun_attr *current_fun)
         else if (this->name == "Fas_Exp")
         {
             this->children->at(1)->CheckTable(current_fun);
-            if (this->children->at(1)->ntype == Type::func)
-            {
-                (*(current_fun->locfuns))[this->children->at(0)->name] = (*(current_fun->locfuns))[this->children->at(1)->name];
-            }
             if (this->children->at(1)->ntype == Type::var)
             {
                 if (current_fun->locfuns->find(this->children->at(1)->name) == current_fun->locfuns->end())
