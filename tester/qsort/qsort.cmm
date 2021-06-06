@@ -1,5 +1,5 @@
 int n ;
-int data[1010] ;
+int data[10100] ;
 
 function void _qsort(int l, int r)
 declare
@@ -54,7 +54,7 @@ do
 		
 	i = 1 ;
 	loop (i <= n) do
-		_output("%d", data[i]);
+		_output("%d\n", data[i]);
 		i = i + 1 ;
 	done
 

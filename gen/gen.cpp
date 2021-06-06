@@ -1,29 +1,26 @@
 #include "gen.h"
 #include <iostream>
-
-extern Fmap funs;
+#include <utility>
 
 namespace gen {
     struct ValueWrapper {
         llvm::Value *value = nullptr;
         DataType type = DataType::vvoid;
         std::vector<int> shape;
-        llvm::ArrayType *arrayType;
-        std::string belong = "";
+        std::string belong;
 
         bool isFunc = false;
 
         ValueWrapper(llvm::Value *value, DataType type, std::string belong = "", bool isFunc = false) {
             this->value = value;
             this->type = type;
-            this->belong = belong;
+            this->belong = std::move(belong);
             this->isFunc = isFunc;
         }
 
-        ValueWrapper(llvm::Value *value, DataType type, std::vector<AST *> lenArray, llvm::ArrayType *arrayType) {
+        ValueWrapper(llvm::Value *value, DataType type, const std::vector<AST *>& lenArray) {
             this->value = value;
             this->type = type;
-            this->arrayType = arrayType;
             for (AST *node : lenArray) {
                 shape.push_back(node->dvalue.integer);
             }
@@ -66,16 +63,15 @@ namespace gen {
 
     static ValueWrapper *GetLValue(AST *LValueNode);
 
-    static ValueWrapper *GetNamedValue(std::string Name, std::string FuncName = "") {
+    static ValueWrapper *GetNamedValue(const std::string& Name, const std::string& FuncName = "") {
         auto FindLocal = NamedLocalValues.find(Name);
         if (FindLocal != NamedLocalValues.end()) {
             return (*FindLocal).second;
         }
 
         auto FindGlobal = NamedGlobalValues.find(Name);
-        if (((*FindGlobal).second->belong == FuncName ||
-             (*FindGlobal).second->belong == "") &&
-            FindGlobal != NamedGlobalValues.end()) {
+        if (((*FindGlobal).second->belong == FuncName || (*FindGlobal).second->belong.empty())
+            && FindGlobal != NamedGlobalValues.end()) {
             return (*FindGlobal).second;
         }
 
@@ -83,7 +79,7 @@ namespace gen {
         exit(2);
     }
 
-    static ValueWrapper *GetArrayElePtr(std::string Name, std::vector<AST *> *EleIndexList) {
+    static ValueWrapper *GetArrayElePtr(const std::string& Name, std::vector<AST *> *EleIndexList) {
         auto *ArrayRef = GetNamedValue(Name);
 
         auto *IndexValue = dynamic_cast<llvm::Value *>(llvm::ConstantInt::get(GetLLVMType(integer), 0, true));
@@ -93,7 +89,7 @@ namespace gen {
         std::vector<llvm::Value *> IdxVec;
         IdxVec.push_back(llvm::ConstantInt::get(GetLLVMType(integer), 0, true));
         for (auto EleIndexItr = EleIndexList->rbegin(); EleIndexItr != EleIndexList->rend(); ++EleIndexItr) {
-            llvm::Value *SelectorValue = nullptr;
+            llvm::Value *SelectorValue;
             if ((*EleIndexItr)->ntype == Type::lvalue) {
                 auto *Loaded = IRBuilder.CreateLoad(GetLLVMType(integer), GetLValue(*EleIndexItr)->value, "ldtmp");
                 SelectorValue = Loaded;
@@ -111,9 +107,9 @@ namespace gen {
         return new ValueWrapper(Value, integer);
     }
 
-    static void SingleGlobalDeclGen(std::string Name, DataType Type) {
+    static void SingleGlobalDeclGen(const std::string& Name, DataType Type) {
         llvm::Constant *InitConst;
-        llvm::Value *Value;
+        llvm::Value *Value = nullptr;
         if (Type == DataType::integer) {
             llvm::Type *llvmType = llvm::Type::getInt32Ty(llvmContext);
             InitConst = llvm::dyn_cast<llvm::Constant>(llvm::ConstantInt::get(llvmType, 0, true));
@@ -124,23 +120,23 @@ namespace gen {
         NamedGlobalValues[std::string(Name)] = wvalue;
     }
 
-    static void ArrayGlobalDeclGen(std::string Name, DataType Type, std::vector<AST *> *LenArray) {
+    static void ArrayGlobalDeclGen(const std::string& Name, DataType Type, std::vector<AST *> *LenArray) {
         auto *LLVMType = GetLLVMType(Type);
         int sum = 1;
         for (AST *node : *(LenArray)) {
             sum *= node->dvalue.integer;
         }
         auto *ArrayType = llvm::ArrayType::get(LLVMType, sum);
-        auto *Value = new llvm::GlobalVariable(llvmModule, ArrayType, false, llvm::GlobalValue::CommonLinkage, 0, Name);
+        auto *Value = new llvm::GlobalVariable(llvmModule, ArrayType, false, llvm::GlobalValue::CommonLinkage, nullptr, Name);
         auto *ConstInit = llvm::ConstantAggregateZero::get(ArrayType);
         Value->setInitializer(ConstInit);
-        NamedGlobalValues[Name] = new ValueWrapper(Value, Type, *LenArray, ArrayType);
+        NamedGlobalValues[Name] = new ValueWrapper(Value, Type, *LenArray);
     }
 
-    static void CreateLocalVariable(std::string Name, DataType Type) {
+    static void CreateLocalVariable(const std::string& Name, DataType Type) {
         llvm::Type *Ty = GetLLVMType(Type);
         llvm::Value *Value;
-        ValueWrapper *wvalue = nullptr;
+        ValueWrapper *wvalue;
         if (Type == function) {
             Value = IRBuilder.CreateAlloca(llvm::PointerType::get(Ty, 0), nullptr, std::string(Name));
             wvalue = new ValueWrapper(Value, Type, "", true);
@@ -170,13 +166,13 @@ namespace gen {
         }
     }
 
-    static void SingleLocalDeclGen(std::string Name, DataType Type) {
+    static void SingleLocalDeclGen(const std::string& Name, DataType Type) {
         CreateLocalVariable(Name, Type);
         auto *wvalue = new ValueWrapper(GetNamedValue(Name)->value, Type);
         NamedLocalValues[std::string(Name)] = wvalue;
     }
 
-    static void ArrayLocalDeclGen(std::string Name, DataType Type, std::vector<AST *> *LenArray) {
+    static void ArrayLocalDeclGen(const std::string& Name, DataType Type, std::vector<AST *> *LenArray) {
         auto *LLVMType = GetLLVMType(Type);
         int sum = 1;
         for (AST *node : *(LenArray)) {
@@ -185,7 +181,7 @@ namespace gen {
         auto *ArrayType = llvm::ArrayType::get(LLVMType, sum);
         auto *LenValue = llvm::ConstantInt::get(GetLLVMType(integer), sum, true);
         auto *Value = IRBuilder.CreateAlloca(ArrayType, LenValue, Name);
-        NamedLocalValues[Name] = new ValueWrapper(Value, Type, *LenArray, ArrayType);
+        NamedLocalValues[Name] = new ValueWrapper(Value, Type, *LenArray);
     }
 
     static void LocalVarDeclGen(AST *Def) {
@@ -250,6 +246,8 @@ namespace gen {
         } else if (Factor->ntype == Type::expr) {
             auto *FuncRet = CallGen(Factor);
             return new ValueWrapper(FuncRet->value, FuncRet->type);
+        } else {
+            return nullptr;
         }
     }
 
@@ -333,6 +331,8 @@ namespace gen {
                 case Operator::GT:
                     return new ValueWrapper(IRBuilder.CreateICmpSGT(LHS->value, RHS->value, "cmptmp"),
                                             DataType::integer);
+                default:
+                    return nullptr;
             }
         }
     }
@@ -481,7 +481,7 @@ namespace gen {
     }
 
 
-    static FunctionWrapper *GetNamedFunc(std::string Name) {
+    static FunctionWrapper *GetNamedFunc(const std::string& Name) {
         auto FoundFunc = NamedFuncs.find(Name);
         if (FoundFunc != NamedFuncs.end()) {
             return FoundFunc->second;
@@ -492,6 +492,7 @@ namespace gen {
                                                FoundPtr->second->value, "ldfunc");
             return new FunctionWrapper(Loaded, integer);
         }
+        return nullptr;
     }
 
     static ValueWrapper *CallGen(AST *Expr) {
@@ -535,7 +536,7 @@ namespace gen {
 
     static void FuncGen(AST *FunDefNode);
 
-    static std::vector<std::string> CaptureVars(std::string PrtFuncName, std::string ClsName) {
+    static std::vector<std::string> CaptureVars(const std::string& PrtFuncName, const std::string& ClsName) {
         // handle by AST.cpp
         auto CapturedPtr = funs[PrtFuncName]->locfuns->at(ClsName)->parents_argv;
         std::vector<std::string> Captured;
@@ -551,7 +552,7 @@ namespace gen {
             PrtFuncName = "_" + PrtFuncName;
         }
         auto Captured = CaptureVars(PrtFuncName, Func->name);
-        for (std::string Name : Captured) {
+        for (const std::string& Name : Captured) {
             auto *ConstInit = llvm::dyn_cast<llvm::Constant>(llvm::ConstantInt::get(GetLLVMType(integer), 0, true));
             auto *PromotedVar = new llvm::GlobalVariable(llvmModule, GetLLVMType(integer), false,
                                                          llvm::GlobalValue::CommonLinkage, ConstInit, Name + "_prm");
