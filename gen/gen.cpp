@@ -1,6 +1,8 @@
 #include "gen.h"
 #include <iostream>
 
+extern Fmap funs;
+
 namespace gen {
     struct ValueWrapper {
         llvm::Value *value = nullptr;
@@ -476,12 +478,22 @@ namespace gen {
 
     static void FuncGen(AST *FunDefNode);
 
-    static std::vector<std::string> CaptureVars() {
-        return { "x" };
+    static std::vector<std::string> CaptureVars(std::string PrtFuncName, std::string ClsName) {
+        // handle by AST.cpp
+        auto CapturedPtr = funs[PrtFuncName]->locfuns->at(ClsName)->parents_argv;
+        std::vector<std::string> Captured;
+        for (const auto& pair : *CapturedPtr) {
+            Captured.emplace_back(pair.first);
+        }
+        return Captured;
     }
 
     static void ClosureGen(AST *Func) {
-        auto Captured = CaptureVars();
+        auto PrtFuncName = irBuilder.GetInsertBlock()->getParent()->getName().str();
+        if (PrtFuncName == "main") {
+            PrtFuncName = "_" + PrtFuncName;
+        }
+        auto Captured = CaptureVars(PrtFuncName, Func->name);
         for (std::string Name : Captured) {
             auto *ConstInit = llvm::dyn_cast<llvm::Constant>(llvm::ConstantInt::get(GetLLVMType(integer), 0, true));
             auto *PromotedVar = new llvm::GlobalVariable(llvmModule, GetLLVMType(integer), false, llvm::GlobalValue::CommonLinkage, ConstInit, Name + "_prm");
