@@ -5,15 +5,19 @@ A toy compiler for our self-designed simple programming language CMM (C--).
 
 ## Structure
 
-* `lex` and `yacc` parser
-* AST Generator
-* LLVM IR Generator
-* Test Cases
+* `lex` and `yacc` parser by [Fusion](https://github.com/Fusion4233919)
+* AST Generator & Semantic Analyzer by [Fusion](https://github.com/Fusion4233919)
+* LLVM IR Generator by [andongfan](https://github.com/andongfan/)
+* Test Cases by [Flaze](https://github.com/flazenaive)
     - Quicksort
     - Matrix Multiplication
     - Auto Advisor for Course Enrollment
 
 ## Features
+* Simple semantic analysis
+    - Attribute calculation
+    - Symbol table
+    - Type checking
 * Global / Local variable declaration
 * Function definition and call
 * Arithmetical / Logical expression evaluation
