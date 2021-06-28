@@ -22,14 +22,28 @@
 ## 1 语言
 
 ### 1.1 语言描述
-[TODO]
-#### BNF
-[TODO]
-#### 语言特性
-[TODO]
+我们设计了一个类 C 的编程语言 CMM（C--），支持以下特性：
+
+* 简单语义分析
+    - 属性计算
+    - 符号表
+    - 类型检查
+* 全局/局部变量定义
+* 函数定义与调用
+* 算数/逻辑表达式求值
+* 控制流语句（`if`, `loop`, `break`, `continue`, `return`...）
+* 任意维度的数组
+    - 支持复杂数组下标  `a[b[c[x]]][d[y]]`
+* 类 C 的输入输出接口
+* 闭包
+    - 支持值捕获
+* 高阶函数（支持传入 int -> int 函数作为函数参数）
+
+附录中将提供 CMM 语言 BNF 文法，以及一段样例代码的词法分析、解析树、符号表。
 
 ### 1.2 词法
 主要使用lex工具完成编译器的词法分析工作，具体代码见scanner.l
+
 即把字符串转换成为相应的token
 
 #### 变量名
@@ -136,7 +150,7 @@ If_Stmt         : IF '(' Cond_Exp ')' DO Exp_List DONE {$$=new AST(Type::expr, "
 
 LLVM IR 生成的过程实际上就是解析树的遍历过程。从解析树根开始，依次访问每一个子节点，然后递归地生成子节点的 IR。生成 IR 全部通过调用 LLVM IRBuilder 等各种 API 实现。
 
-报告篇幅有限，在此仅进行大致描述。
+报告篇幅有限，在此仅大致描述 LLVM IR 生成。
 
 * `Program` 生成
 
@@ -154,7 +168,7 @@ LLVM IR 生成的过程实际上就是解析树的遍历过程。从解析树根
 
 * `Expr` 生成
 
-  `Expr` 种类丰富，其对应了 BNF 中的 Exp。简单来说，`Expr` 可以分为三类：
+  `Expr` 种类丰富，其对应了 BNF 中的 Exp。简单来说，`Expr` 可以分为以下几类：
 
   * 赋值语句
 
@@ -389,6 +403,36 @@ call void @_map(i32 (i32)* @_multTwo)
 
 #### 4.1.2 结果
 
+```
+fixed case 0 (size 0)...pass!
+fixed case 1 (size 1)...pass!
+fixed case 2 (size 2)...pass!
+fixed case 3 (size 2)...pass!
+fixed case 4 (size 3)...pass!
+fixed case 5 (size 3)...pass!
+fixed case 6 (size 3)...pass!
+fixed case 7 (size 3)...pass!
+fixed case 8 (size 3)...pass!
+fixed case 9 (size 4)...pass!
+fixed case 10 (size 9)...pass!
+fixed case 11 (size 9)...pass!
+fixed case 12 (size 10000)...pass!
+fixed case 13 (size 10000)...pass!
+fixed case 14 (size 4096)...pass!
+randomly generated case 0 (size 10000)...pass!
+randomly generated case 1 (size 10000)...pass!
+randomly generated case 2 (size 10000)...pass!
+randomly generated case 3 (size 10000)...pass!
+randomly generated case 4 (size 10000)...pass!
+randomly generated case 5 (size 10000)...pass!
+randomly generated case 6 (size 10000)...pass!
+randomly generated case 7 (size 10000)...pass!
+randomly generated case 8 (size 10000)...pass!
+randomly generated case 9 (size 10000)...pass!
+----------------------------------------
+2021-21-28 17:17:05.527
+```
+
 ### 4.2 矩阵乘法
 
 #### 4.2.1 要求
@@ -402,6 +446,26 @@ call void @_map(i32 (i32)* @_multTwo)
 如果A和B不能相乘，输出提示，否则输出进行乘法运算后得到的结果矩阵，每个元素占10位。
 
 #### 4.2.2 结果
+
+```
+fixed case 0 (size [1x1]x[1x1])...pass!
+fixed case 1 (size [1x1]x[2x1])...pass!
+fixed case 2 (size [1x4]x[4x1])...pass!
+fixed case 3 (size [4x1]x[1x4])...pass!
+fixed case 4 (size [1x25]x[25x1])...pass!
+randomly generated case 0 (size [20x20]x[20x20])...pass!
+randomly generated case 1 (size [20x20]x[20x20])...pass!
+randomly generated case 2 (size [20x20]x[20x20])...pass!
+randomly generated case 3 (size [20x20]x[20x20])...pass!
+randomly generated case 4 (size [20x20]x[20x20])...pass!
+randomly generated case 5 (size [20x20]x[20x20])...pass!
+randomly generated case 6 (size [20x20]x[20x20])...pass!
+randomly generated case 7 (size [20x20]x[20x20])...pass!
+randomly generated case 8 (size [20x20]x[20x20])...pass!
+randomly generated case 9 (size [20x20]x[20x20])...pass!
+----------------------------------------
+2021-21-28 17:17:05.85
+```
 
 ### 4.3 选课助手
 
@@ -423,3 +487,202 @@ call void @_map(i32 (i32)* @_multTwo)
 依次输出GPA，尝试修读的学分（包括F成绩的课程），已获得学分（不包括F课程），剩余学分（培养方案中剩余未修读的学分数，包括F课程），推荐课程（满足前置课程条件，可以修读的课程，包括成绩F的课程，按照输入的先后顺序输出）
 
 #### 4.3.2 结果
+
+```
+fixed case 0...pass!
+fixed case 1...pass!
+fixed case 2...pass!
+fixed case 3...pass!
+fixed case 4...pass!
+randomly generated case 0...pass!
+randomly generated case 1...pass!
+randomly generated case 2...pass!
+randomly generated case 3...pass!
+randomly generated case 4...pass!
+randomly generated case 5...pass!
+randomly generated case 6...pass!
+randomly generated case 7...pass!
+randomly generated case 8...pass!
+randomly generated case 9...pass!
+----------------------------------------
+2021-21-28 17:17:06.218
+```
+
+## 附录
+
+### CMM 语言 BNF 文法
+
+```
+Program:        Def_List Fun_Def_List
+
+Def_List:       Def_List Def ";" |  
+
+Fun_Def_List:   Fun_Def_List Fun_Def | 
+
+Def:            TYPE Var_List | FN Fun_Name_List
+
+Fun_Def:	    "function" FUN_TYPE Fun_ID "("Fun_Var_List")" "declare" Def_List "do" Exp_List           							 "done"
+
+
+TYPE:		        "int" 
+
+FN:             "fn"
+
+FUN_TYPE:       TYPE | "void" | FN
+
+Var_List:	      Var_List"," Var | Var
+
+Var:		        Var"["Number"]" | ID
+
+Fun_Name_List   Fun_Name_List "," Fun_ID | Fun_ID
+
+Fun_Var_List:	  Fun_Var_List"," Fun_Var | Fun_Var | "void"
+
+Fun_Var:	      TYPE ID | FN Fun_ID
+
+
+Number:		      0|([1-9][0-9]*)
+
+String:         \"(\\.|[^"\\])*\"
+
+ID:		          ([A-Z]|[a-z])+
+
+Fun_ID:		      _([A-Z]|[a-z])+
+
+
+Exp_List:       Exp_List Exp | Exp
+
+Exp:	          As_Exp ";" | Op_Exp ";" | Cond_Exp ";"
+                  | If_Stmt | Lop_Stmt
+                  | "break"";" | "continue"";" | "return" Op_Exp";" | "return" ";"
+                  | Input_Exp | Output_Exp
+                  | Fun_Def | Fas_Exp
+
+Fas_Exp:        Fun_ID "=" Fun_ID | Fun_ID "=" Fun_Value
+
+Input_Exp:      "_input" "(" String "," LList ")"
+
+Output_Exp:     "_output" "(" String "," List ")"
+                | "_output" "(" String ")"
+
+
+As_Exp:		    	LValue = Op_Exp 
+
+
+Cond_Exp:	    	Cond_Exp "||" Cond_Term | Cond_Term 
+
+Cond_Term:  		Cond_Term "&&" Cond_Factor | Cond_Factor
+
+Cond_Factor:		"("Cond_Exp")" | Op_Exp Cond_op Op_Exp
+
+Cond_op:	   	 	"<" | ">" | "==" | "!=" | "<=" | ">="
+
+
+
+Op_Exp:		    	Op_Exp Add_op Op_Term | Op_Term
+
+Op_Term:	    	Op_Term Mul_op Op_Factor | Op_Factor
+
+Op_Factor:	    "("Op_Exp")" | LValue | Fun_Value | Number
+
+Add_op:		    	"+" | "-" 
+
+Mul_op:		    	"*" | "/" | "%"
+
+    
+If_Stmt:	    	"if" "("Cond_Exp")" "do" Exp_List "done"
+
+Lop_Stmt:	    	"loop" "("Cond_Exp")" "do" Exp_List "done"
+
+LValue:         LValue "[" LValue "]" | LValue "[" Number "]" | ID
+
+Fun_Value:      Fun_ID "("List")" | Fun_ID "(" ")"
+
+List:           List "," LValue | List "," Number | List "," Fun_ID
+                | LValue | Number | Fun_ID
+
+LList           LList "," "&" LValue | "&" LValue
+```
+
+### 样例
+
+样例 CMM 源码：
+
+```shell
+int a, b;
+function int _func(void)
+declare
+    int t ;
+do
+    t = a * b + '\n';
+	return t;
+done
+```
+
+词法分析结果：
+
+```
+INT ID(a), ID(b);
+FUNCTION INT Fun_ID(_func)(VOID)
+DECLARE
+	INT ID(t) ;
+DO
+	ID(t) = ID(a)*ID(b)+Number('\n');
+	RETURN ID(t);
+DONE
+```
+
+解析树：
+
+```
+Program
+|- Def_List
+   |- Def
+      |- int
+      |- Var_List
+         |- a
+         |- b
+|- Fun_List
+   |- _func
+      |- int
+      |- Fun_Var_List
+      |  |- void
+      |
+      |- Def_List
+      |  |- Def
+      |     |- int
+      |     |- Var_List
+      |        |- t
+      |
+      |- Exp_List
+         |- As_Exp
+         |  |- t
+         |  |- Op_Exp
+         |     |- Op_Term
+         |     |  |- a
+         |     |  |- *
+         |     |  |- b
+         |     |
+         |     |- +
+         |     |- Op_Term
+         |        |- 10
+         |
+         |- return
+            |- Op_Exp
+               |- Op_Term
+                  |- t
+```
+
+符号表：
+
+```
+Name type dim
+a    int  0
+b    int  0
+
+Name  type
+_func void 
+	Name type dim
+     t    int  0
+```
+
