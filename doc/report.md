@@ -126,6 +126,7 @@ fad
 #### 词法错误
 词法错误提示在词法分析时给出；
 词法错误的原因一般是出现了不能识别的字符串，不能被归类于任何一种token；此时会提示出现错误的行号
+
 #### 语法错误
 语法错误提示在生成解析树时给出；
 语法错误的原因大多没有按照语法规则进行代码书写，如关键字错误；此时会提示出现错误的行号与出错的文本
@@ -134,7 +135,172 @@ fad
 语义错误的种类多样，主要包括运算符类型不匹配、函数参数类型不匹配等；此时会给出提示出现错误的类型
 ### 3.2 简易函数式编程
 
-fad
+由于项目时间与规模有限，我们只选择了实现函数式编程的两个关键特性：闭包与高阶函数。
+
+#### 3.2.1 闭包
+
+##### 闭包
+
+如果函数 f 内定义了函数 g，那么如果 g 存在自由变量（g 中未定义的变量），且这些自由变量没有在编译过程中被优化掉，那么将产生闭包。闭包需要捕获自由变量。下面一个 CMM 代码实例将比较清晰地展示闭包的功能。
+
+```shell
+function void _closureTest(void)
+declare
+    int x ;
+do
+    x = 1 ;
+    function int _closure(int y)
+    declare
+    do
+        x = x + y ;
+        return x ;
+    done
+done
+```
+
+代码中在函数 `_closureTest` 中定义了一个函数 `_closure`，`_closure` 中存在自由变量 `x`，则 `_closure` 成为一个闭包，其将捕获自由变量 `x`。尝试在主函数中调用 `_closure`。
+
+```
+_closureTest();
+_closure(4); // 5
+_closure(5); // 10
+_closure(6); // 16 
+```
+
+`_closureTest` 被调用后产生了一个闭包 `_closure`。调用 `_closure`， 传入参数 `4`、`5`、`6`，`_closure` 函数将分别返回 `5`、`10`、`16`。可见，即使 `_closureTest` 中 `x` 的生命周期已经结束，闭包 `_closure` 仍能对 `x` 的值进行操作。
+
+##### 语法与语义
+
+为了支持函数的嵌套定义，我们需要改造语法。
+
+Fun_Def:    "function" FUN_TYPE Fun_ID "("Fun_Var_List")" "declare" Def_List "do" ***Exp_List*** "done"
+
+Exp_List:    Exp_List ***Exp*** | ***Exp***
+
+Exp:     As_Exp ";" | Op_Exp ";" | Cond_Exp ";"
+
+​            | If_Stmt | Lop_Stmt
+
+​            | "break"";" | "continue"";" | "return" Op_Exp";" | "return" ";"
+
+​            | Input_Exp | Output_Exp | ***Fun_Def***
+
+语法中，Fun_Def 内有语句列表 Exp_List，列表中的语句 Exp 可以是一个 Fun_Def。
+
+##### 中间代码生成
+
+生成中间代码时，我们使用了 Lambda Lifting 这一技术。
+
+> Lambda lifting is a meta-process that restructures a computer program so that functions are defined independently of each other in a global scope.
+>
+> * An individual lift transforms a local function into a global function. It is a two step process, consisting of;
+>   * Eliminating free variables in the function by adding parameters.
+>   * Moving functions from a restricted scope to broader or global scope.
+
+Lambda Lifting 将程序中所有函数组织成在全局作用域中各自独立定义的结构。对于局部定义的函数，我们需要消除其自由变量，并将其移动到全局作用域中。
+
+在消除自由变量前，我们需要捕获它们，这一步骤由语义分析完成。语义分析将返回给编译器中端自由变量的所有名字。为了让闭包能访问被捕获的变量，我们将被捕获变量“提升”到全局作用域，并在生成闭包时将被捕获变量的值拷贝到提升后的捕获变量中。在闭包中对被捕获变量的访问都通过提升后的变量进行。这样的实现可以保证闭包能在原自由变量的生命周期结束后，仍然可以通过访问提升变量的方式来对捕获值进行操作。同时，因为被捕获的值是仅供此闭包内部使用的，在编译器中端也会对提升变量的访问进行控制。
+
+下面的一段 LLVM IR 代码可以比较清楚地展现闭包的实现原理。
+
+```
+@x_prm = common global i32 0
+
+define i32 @_closure(i32 %y1) {
+entry:
+	...
+  %tmp2 = load i32, i32* @x_prm, align 4
+  %tmp3 = load i32, i32* %y, align 4
+  %addtmp = add i32 %tmp2, %tmp3
+	...
+}
+
+define void @_closureTest() {
+entry:
+  ...
+  %loaded = load i32, i32* %x, align 4
+  store i32 %loaded, i32* @x_prm, align 4
+  store i32 2, i32* %x, align 4
+  %calltmp = call i32 @_closure(i32 4)
+  ...
+}
+```
+
+可以看到，自由变量 `x` 被提升为全局变量 `x_prm`，在闭包内访问 `x` 都通过访问 `x_prm  `进行；在创建闭包时，将自由变量 `x `的值写入提升变量 `x_prm` 中。此后闭包外对变量 `x ` 的访问都是对原 `x` 进行，不会访问 `x_prm`。
+
+#### 3.2.2 高阶函数
+
+##### 高阶函数
+
+高阶函数是至少满足下列一个条件的函数：
+
+- 接受一个或多个函数作为输入
+- 输出一个函数
+
+我们的语言和编译器支持接受一个函数作为输入，下面一个 CMM 代码实例将比较清晰地展示高阶函数的功能。
+
+```shell
+function void _map(fn _lambda)
+declare
+    int t ;
+do
+    t = 0 ;
+    loop (t < N)
+    do
+        array[t] = _lambda(array[t]) ;
+        t = t + 1 ;
+    done
+    return ;
+done
+```
+
+```
+_map(_multTwo);
+```
+
+`_map` 函数接受一个 `_lambda` 函数作为参数，并在函数体内调用 `_lambda`。`_map` 的类型是 `(int -> int) -> void`，`_multTwo` 的类型为 `int -> int `。
+
+##### 语法与语义
+
+为了支持将函数作为参数传入函数，我们需要改造语法。
+
+Fun_Def:        "function" FUN_TYPE Fun_ID "("Fun_Var_List")" "declare" Def_List "do" ***Exp_List*** "done"
+
+Fun_Var_List: "void" | TYPE, ***Fun_Var***, [{",", TYPE, Fun_Var}]
+
+Fun_Var:         TYPE, ID | ***FN, Fun_ID***
+
+FN 是函数的类型标识符，我们简单将高阶函数接受的参数函数视作 `int -> int` 类型。
+
+##### 中间代码生成
+
+LLVM IR 中函数不是一等公民，因此我们使用函数指针实现这一功能。实现这一功能有以下步骤：
+
+* 保存函数名对应的函数指针
+
+* 高阶函数内调用函数指针指向的函数
+
+* 调用高阶函数时将函数指针传入
+
+生成的 LLVM IR 代码如下。
+
+```
+define void @_map(i32 (i32)* %_lambda1) {
+entry:
+  %_lambda = alloca i32 (i32)*, align 8
+  store i32 (i32)* %_lambda1, i32 (i32)** %_lambda, align 8
+…
+loop: 
+  %ldfunc = load i32 (i32)*, i32 (i32)** %_lambda, align 8
+  。。。
+  %tmp = load i32, i32* %arrtmp5, align 4
+  %calltmp = call i32 %ldfunc(i32 %tmp)
+}
+
+call void @_map(i32 (i32)* @_multTwo)
+```
+
+可以看到，函数开头为参数函数指针申请了空间，得到一个二级指针，并将参数函数指针写入。在需要调用参数函数时，需要读出参数函数指针，并调用函数指针指向的函数。在调用高阶函数时，将函数指针直接作为参数传入参数数组即可。
 
 ## 4 测试与结果
 
